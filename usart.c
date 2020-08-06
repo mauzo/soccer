@@ -60,8 +60,11 @@ ISR(USART_UDRE_vect)
 }
 #endif
 
+#define     USART_TX    (1<<TXEN0)
+#define     USART_UDRE  (1<<UDRIE0)
+
 void
-usart_init (uint16_t baud)
+usart_init (uint16_t baud, uint8_t mode)
 {
     uint16_t    ubrr    = F_CPU/16/baud - 1;
 
@@ -72,12 +75,12 @@ usart_init (uint16_t baud)
     // Set frame: 8 bit, 1 stop
     UCSR0C  = (3<<UCSZ00);
 
-    // Enable tx
-    UCSR0B  = (1<<TXEN0);
+    // Enable the mode
+    UCSR0B  = mode;
 }
 
 void
-usart_tx (uint8_t data)
+usart_busy_tx (uint8_t data)
 {
     // Wait for empty transmit buffer
     while (!(UCSR0A & (1<<UDRE0))) ;
@@ -86,17 +89,33 @@ usart_tx (uint8_t data)
     UDR0    = data;
 }
 
+ISR(USART_UDRE_vect)
+{
+    UDR0    = *ptr++;
+
+    if (ptr == buf + sizeof(buf))
+        ptr = buf;
+}
+
+static void
+busy_tx_sreg (void)
+{
+    byte    sreg, i;
+
+    sreg    = SREG;
+    for (i = 0; i < 8; i++)
+        usart_busy_tx((sreg & 1<<(7 - i)) ? '1' : '0');
+    usart_busy_tx('\r');
+    usart_busy_tx('\n');
+}
+
 int
 main (void)
 {
-    byte    *ptr    = buf;
-
-    usart_init(9600);
+    usart_init(9600, USART_TX|USART_UDRE);
+    sei();
 
     while (1) {
-        usart_tx(*ptr++);
-        if (ptr == buf + sizeof(buf))
-            ptr = buf;
     }
 }
 

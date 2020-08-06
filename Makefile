@@ -3,7 +3,7 @@
 
 PROG=	uart
 
-SRCS=	uart.c
+SRCS=	usart.c
 
 TTY_SPEED=	9600
 
