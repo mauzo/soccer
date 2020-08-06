@@ -60,10 +60,9 @@ ISR(USART_UDRE_vect)
 }
 #endif
 
-int
-main (void)
+void
+usart_init (uint16_t baud)
 {
-    uint16_t    baud    = 9600;
     uint16_t    ubrr    = F_CPU/16/baud - 1;
 
     // Set baud rate
@@ -75,13 +74,29 @@ main (void)
 
     // Enable tx
     UCSR0B  = (1<<TXEN0);
+}
+
+void
+usart_tx (uint8_t data)
+{
+    // Wait for empty transmit buffer
+    while (!(UCSR0A & (1<<UDRE0))) ;
+
+    // Put a character to send
+    UDR0    = data;
+}
+
+int
+main (void)
+{
+    byte    *ptr    = buf;
+
+    usart_init(9600);
 
     while (1) {
-        // Wait for empty transmit buffer
-        while (!(UCSR0A & (1<<UDRE0))) ;
-
-        // Put a character to send
-        UDR0    = 'X';
+        usart_tx(*ptr++);
+        if (ptr == buf + sizeof(buf))
+            ptr = buf;
     }
 }
 
