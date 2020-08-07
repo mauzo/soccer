@@ -9,55 +9,44 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-typedef struct {
-    byte    *buf;
-    byte    *ptr;
-    size_t  len;
-} usart_dev;
-
-usart_dev   usart0 = { buf: NULL, ptr: NULL, len: 0 };
+usart_dev   usart0 = { 0 };
 
 void
-usart_init (uint16_t baud, uint8_t mode)
+usart_init (uint16_t baud)
 {
     uint16_t    ubrr    = F_CPU/16/baud - 1;
 
     // Set baud rate
-    //UBRR0H  = (byte)(ubrr >> 8);
-    //UBRR0L  = (byte)ubrr;
     UBRR0   = ubrr;
 
     // Set frame: 8 bit, 1 stop
     UCSR0C  = (3<<UCSZ00);
 
     // Set the mode (tx/tx/isr/etc)
-    UCSR0B  = mode;
+    UCSR0B  = USART_ENABLE_TX;
 }
 
 void
-usart_busy_tx (byte data)
+usart_write (byte *ptr, size_t len)
 {
-    // Wait for empty transmit buffer
-    while (!(UCSR0A & (1<<UDRE0))) ;
+    buffer  *buf    = &usart0.us_wr_buf;
 
-    // Put a character to send
-    UDR0    = data;
-}
-
-void
-usart_set_buf(byte *buf, size_t len)
-{
-    usart0.buf  = buf;
-    usart0.ptr  = buf;
-    usart0.len  = len - 1;
+    buf->bf_ptr     = ptr;
+    buf->bf_len     = len;
+    buf->bf_xptr    = ptr;
+    buf->bf_xlen    = len;
 }
 
 ISR(USART_UDRE_vect)
 {
-    UDR0    = *usart0.ptr++;
+    buffer *buf = &usart0.us_wr_buf;
 
-    if (usart0.ptr == usart0.buf + usart0.len)
-        usart0.ptr = usart0.buf;
+    UDR0    = *buf->bf_ptr++;
+
+    if (--buf->bf_len == 0) {
+        buf->bf_ptr = buf->bf_xptr;
+        buf->bf_len = buf->bf_xlen;
+    }
 
     _delay_ms(500);
 }
