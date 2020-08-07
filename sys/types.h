@@ -1,0 +1,18 @@
+/*
+ * sys/types.h for SoCcer.
+ * This need to override sys/types.h from avr-libc.
+ */
+
+#ifndef __SYS_TYPES_H
+#define __SYS_TYPES_H
+
+// for now...
+#include <stddef.h>
+#include <stdint.h>
+
+typedef long    off_t;
+
+typedef uint8_t byte;
+typedef uint8_t bool;
+
+#endif

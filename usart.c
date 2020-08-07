@@ -1,17 +1,21 @@
-#include <stdint.h>
+/*
+ * usart.c
+ * Interface to the USART interface on AVR ATmega chips.
+ */
+
+#include <sys/types.h>
+#include <sys/usart.h>
 
 #include <avr/interrupt.h>
-#include <avr/io.h>
 #include <util/delay.h>
 
-typedef uint8_t byte;
-typedef uint8_t bool;
+typedef struct {
+    byte    *buf;
+    byte    *ptr;
+    size_t  len;
+} usart_dev;
 
-byte    buf[]   = "Hello world!\r\n";
-byte    *ptr    = buf;
-
-#define     USART_TX    (1<<TXEN0)
-#define     USART_UDRE  (1<<UDRIE0)
+usart_dev   usart0 = { buf: NULL, ptr: NULL, len: 0 };
 
 void
 usart_init (uint16_t baud, uint8_t mode)
@@ -19,8 +23,9 @@ usart_init (uint16_t baud, uint8_t mode)
     uint16_t    ubrr    = F_CPU/16/baud - 1;
 
     // Set baud rate
-    UBRR0H  = (byte)(ubrr >> 8);
-    UBRR0L  = (byte)ubrr;
+    //UBRR0H  = (byte)(ubrr >> 8);
+    //UBRR0L  = (byte)ubrr;
+    UBRR0   = ubrr;
 
     // Set frame: 8 bit, 1 stop
     UCSR0C  = (3<<UCSZ00);
@@ -30,7 +35,7 @@ usart_init (uint16_t baud, uint8_t mode)
 }
 
 void
-usart_busy_tx (uint8_t data)
+usart_busy_tx (byte data)
 {
     // Wait for empty transmit buffer
     while (!(UCSR0A & (1<<UDRE0))) ;
@@ -39,35 +44,21 @@ usart_busy_tx (uint8_t data)
     UDR0    = data;
 }
 
+void
+usart_set_buf(byte *buf, size_t len)
+{
+    usart0.buf  = buf;
+    usart0.ptr  = buf;
+    usart0.len  = len - 1;
+}
+
 ISR(USART_UDRE_vect)
 {
-    UDR0    = *ptr++;
+    UDR0    = *usart0.ptr++;
 
-    if (ptr == buf + sizeof(buf) - 1)
-        ptr = buf;
+    if (usart0.ptr == usart0.buf + usart0.len)
+        usart0.ptr = usart0.buf;
 
     _delay_ms(500);
-}
-
-static void
-busy_tx_sreg (void)
-{
-    byte    sreg, i;
-
-    sreg    = SREG;
-    for (i = 0; i < 8; i++)
-        usart_busy_tx((sreg & 1<<(7 - i)) ? '1' : '0');
-    usart_busy_tx('\r');
-    usart_busy_tx('\n');
-}
-
-int
-main (void)
-{
-    usart_init(9600, USART_TX|USART_UDRE);
-    sei();
-
-    while (1) {
-    }
 }
 

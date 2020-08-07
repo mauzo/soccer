@@ -1,13 +1,17 @@
 .include "config.mk"
 .include "../avr-mk/avr.mk"
 
-PROG=	uart
+PROG=	ttytest
 
-SRCS=	usart.c
+SRCS=	usart.c ttytest.c
 
 TTY_SPEED=	9600
 
-CFLAGS=		-Os
+CFLAGS+=	-ffunction-sections -fdata-sections -Os -std=gnu99
+CFLAGS+=	-Wall -Wno-parentheses
+CFLAGS+=	-I${.CURDIR}
+
+LDFLAGS+=	-Os -Wl,--gc-sections
 
 defines: ${F}
 	${CC} ${CFLAGS} -dM -E ${F:D${.ALLSRC}:U-x c /dev/null} | sort
