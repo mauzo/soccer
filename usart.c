@@ -8,7 +8,6 @@
 #include <sys/usart.h>
 
 #include <avr/interrupt.h>
-#include <util/delay.h>
 
 usart_dev   usart0 = { 0 };
 
@@ -34,13 +33,6 @@ usart_poll (byte mode)
     return !!(usart0.us_flags & mode);
 }
 
-static void
-tx_one (buffer *buf)
-{
-    UDR0    = *buf->bf_ptr++;
-    buf->bf_len--;
-}
-
 void
 usart_write (byte *ptr, size_t len)
 {
@@ -49,30 +41,26 @@ usart_write (byte *ptr, size_t len)
     CRIT_START {
         buf->bf_ptr     = ptr;
         buf->bf_len     = len;
-        buf->bf_xptr    = ptr;
-        buf->bf_xlen    = len;
 
         usart0.us_flags |= DEV_WRITING;
-
-        if (UCSR0A & UDRE0)
-            tx_one(buf);
+        UCSR0B          |= USART_ENABLE_DRE;
     } CRIT_END;
 }
 
+/* This ISR must either set UDR or disable itself. Otherwise it will
+ * re-trigger immediately.
+ */
 ISR(USART_UDRE_vect)
 {
     buffer *buf = &usart0.us_wr_buf;
 
     if (buf->bf_len) {
-        tx_one(buf);
+        UDR0    = *buf->bf_ptr++;
+        buf->bf_len--;
     }
     else {
-        //buf->bf_ptr     = buf->bf_xptr;
-        //buf->bf_len     = buf->bf_xlen;
-
+        UCSR0B          &= ~USART_ENABLE_DRE;
         usart0.us_flags &= ~DEV_WRITING;
     }
-
-    _delay_ms(200);
 }
 

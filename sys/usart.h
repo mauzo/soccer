@@ -10,7 +10,8 @@
 #include <sys/types.h>
 #include <avr/io.h>
 
-#define     USART_ENABLE_TX     (1<<TXEN0)|(1<<UDRIE0)
+#define USART_ENABLE_TX     (1<<TXEN0)
+#define USART_ENABLE_DRE    (1<<UDRIE0)
 
 #define     DEV_OPEN        1
 #define     DEV_READING     2
