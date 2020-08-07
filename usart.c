@@ -24,9 +24,21 @@ usart_init (uint16_t baud)
         // Set frame: 8 bit, 1 stop
         UCSR0C  = (3<<UCSZ00);
 
-        // Set the mode (tx/tx/isr/etc)
-        UCSR0B  = USART_ENABLE_TX;
+        UCSR0B  |= USART_ENABLE_TX;
     } CRIT_END;
+}
+
+bool
+usart_poll (byte mode)
+{
+    return !!(usart0.us_flags & mode);
+}
+
+static void
+tx_one (buffer *buf)
+{
+    UDR0    = *buf->bf_ptr++;
+    buf->bf_len--;
 }
 
 void
@@ -39,6 +51,11 @@ usart_write (byte *ptr, size_t len)
         buf->bf_len     = len;
         buf->bf_xptr    = ptr;
         buf->bf_xlen    = len;
+
+        usart0.us_flags |= DEV_WRITING;
+
+        if (UCSR0A & UDRE0)
+            tx_one(buf);
     } CRIT_END;
 }
 
@@ -46,13 +63,16 @@ ISR(USART_UDRE_vect)
 {
     buffer *buf = &usart0.us_wr_buf;
 
-    UDR0    = *buf->bf_ptr++;
+    if (buf->bf_len) {
+        tx_one(buf);
+    }
+    else {
+        //buf->bf_ptr     = buf->bf_xptr;
+        //buf->bf_len     = buf->bf_xlen;
 
-    if (--buf->bf_len == 0) {
-        buf->bf_ptr = buf->bf_xptr;
-        buf->bf_len = buf->bf_xlen;
+        usart0.us_flags &= ~DEV_WRITING;
     }
 
-    _delay_ms(500);
+    _delay_ms(200);
 }
 

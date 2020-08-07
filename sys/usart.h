@@ -29,8 +29,7 @@ typedef struct usart_dev {
 } usart_dev;
 
 void    usart_init      (uint16_t baud);
-void    usart_busy_tx   (byte data);
 void    usart_write     (byte *ptr, size_t len);
-void    usart_poll      (byte mode);
+bool    usart_poll      (byte mode);
 
 #endif
