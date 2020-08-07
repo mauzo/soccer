@@ -4,6 +4,7 @@
  */
 
 #include <sys/types.h>
+#include <sys/atomic.h>
 #include <sys/usart.h>
 
 #include <avr/interrupt.h>
@@ -16,14 +17,16 @@ usart_init (uint16_t baud)
 {
     uint16_t    ubrr    = F_CPU/16/baud - 1;
 
-    // Set baud rate
-    UBRR0   = ubrr;
+    CRIT_START {
+        // Set baud rate
+        UBRR0   = ubrr;
 
-    // Set frame: 8 bit, 1 stop
-    UCSR0C  = (3<<UCSZ00);
+        // Set frame: 8 bit, 1 stop
+        UCSR0C  = (3<<UCSZ00);
 
-    // Set the mode (tx/tx/isr/etc)
-    UCSR0B  = USART_ENABLE_TX;
+        // Set the mode (tx/tx/isr/etc)
+        UCSR0B  = USART_ENABLE_TX;
+    } CRIT_END;
 }
 
 void
@@ -31,10 +34,12 @@ usart_write (byte *ptr, size_t len)
 {
     buffer  *buf    = &usart0.us_wr_buf;
 
-    buf->bf_ptr     = ptr;
-    buf->bf_len     = len;
-    buf->bf_xptr    = ptr;
-    buf->bf_xlen    = len;
+    CRIT_START {
+        buf->bf_ptr     = ptr;
+        buf->bf_len     = len;
+        buf->bf_xptr    = ptr;
+        buf->bf_xlen    = len;
+    } CRIT_END;
 }
 
 ISR(USART_UDRE_vect)
