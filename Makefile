@@ -3,7 +3,7 @@
 
 PROG=	ttytest
 
-SRCS=	usart.c ttytest.c
+SRCS=	devices.c usart.c ttytest.c
 
 TTY_SPEED=	9600
 

@@ -5,15 +5,14 @@
 
 #include <sys/types.h>
 #include <sys/atomic.h>
+#include <sys/dev.h>
 #include <sys/sleep.h>
 #include <sys/usart.h>
 
 #include <avr/interrupt.h>
 
-usart_dev   usart0 = { 0 };
-
 void
-usart_init (uint16_t baud)
+usart_init (byte d _UNUSED, uint16_t baud)
 {
     uint16_t    ubrr    = F_CPU/16/baud - 1;
 
@@ -29,28 +28,30 @@ usart_init (uint16_t baud)
 }
 
 bool
-usart_poll (byte mode)
+usart_poll (byte d, byte mode)
 {
-    byte    *flg    = &usart0.us_flags;
+    usart_cdev  *cdev   = dev2cdev(d);
+    byte        *flg    = &cdev->us_flags;
 
     if (!(*flg & mode))
         return 1;
 
-    sleep_while(usart0.us_flags & mode);
+    sleep_while(*flg & mode);
 
     return 1;
 }
 
 void
-usart_write (byte *ptr, size_t len)
+usart_write (byte d, byte *ptr, size_t len)
 {
-    buffer  *buf    = &usart0.us_wr_buf;
+    usart_cdev  *cdev   = dev2cdev(d);
+    buffer      *buf    = &cdev->us_wr_buf;
 
     CRIT_START {
         buf->bf_ptr     = ptr;
         buf->bf_len     = len;
 
-        usart0.us_flags |= DEV_WRITING;
+        cdev->us_flags  |= DEV_WRITING;
         UCSR0B          |= USART_ENABLE_DRE;
     } CRIT_END;
 }
@@ -58,9 +59,11 @@ usart_write (byte *ptr, size_t len)
 /* This ISR must either set UDR or disable itself. Otherwise it will
  * re-trigger immediately.
  */
-ISR(USART_UDRE_vect)
+static void
+usart_isr_udre (byte d)
 {
-    buffer *buf = &usart0.us_wr_buf;
+    usart_cdev  *cdev   = dev2cdev(d);
+    buffer      *buf    = &cdev->us_wr_buf;
 
     if (buf->bf_len) {
         UDR0    = *buf->bf_ptr++;
@@ -68,7 +71,13 @@ ISR(USART_UDRE_vect)
     }
     else {
         UCSR0B          &= ~USART_ENABLE_DRE;
-        usart0.us_flags &= ~DEV_WRITING;
+        cdev->us_flags  &= ~DEV_WRITING;
     }
+}
+
+/* Install the ISR statically for now, with hardcoded device number */
+ISR(USART_UDRE_vect)
+{
+    usart_isr_udre(0);
 }
 

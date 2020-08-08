@@ -9,4 +9,6 @@
 # define    __END_DECLS
 #endif
 
+#define _UNUSED __attribute__((unused))
+
 #endif

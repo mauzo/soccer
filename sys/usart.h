@@ -26,16 +26,16 @@ typedef struct buffer {
     size_t  bf_xlen;
 } buffer;
 
-typedef struct usart_dev {
+typedef struct usart_cdev {
     byte    us_flags;
     buffer  us_wr_buf;
-} usart_dev;
+} usart_cdev;
 
 __BEGIN_DECLS
 
-void    usart_init      (uint16_t baud);
-void    usart_write     (byte *ptr, size_t len);
-bool    usart_poll      (byte mode);
+void    usart_init      (byte d, uint16_t baud);
+void    usart_write     (byte d, byte *ptr, size_t len);
+bool    usart_poll      (byte d, byte mode);
 
 __END_DECLS
 
