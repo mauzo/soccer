@@ -5,6 +5,7 @@
 
 #include <sys/types.h>
 #include <sys/atomic.h>
+#include <sys/sleep.h>
 #include <sys/usart.h>
 
 #include <avr/interrupt.h>
@@ -30,7 +31,14 @@ usart_init (uint16_t baud)
 bool
 usart_poll (byte mode)
 {
-    return !!(usart0.us_flags & mode);
+    byte    *flg    = &usart0.us_flags;
+
+    if (!(*flg & mode))
+        return 1;
+
+    sleep_while(usart0.us_flags & mode);
+
+    return 1;
 }
 
 void

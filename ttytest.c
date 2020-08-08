@@ -29,10 +29,10 @@ main (void)
 
     while (1) {
         for (i = 0; i < lengthof(msgs); i++) {
+            usart_poll(DEV_WRITING);
             usart_write(msgs[i].bf_ptr, msgs[i].bf_len);
-            while (usart_poll(DEV_WRITING)) ;
+            usart_poll(DEV_WRITING);
             usart_write("\r\n", 2);
-            while (usart_poll(DEV_WRITING)) ;
             _delay_ms(500);
         }
         _delay_ms(1000);
