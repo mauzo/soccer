@@ -57,10 +57,10 @@ usart_ioctl (dev_t d _UNUSED, ioc_t r, uintptr_t p)
 }
 
 void
-usart_write (byte d, byte *ptr, size_t len)
+usart_write (byte d, const byte *ptr, size_t len)
 {
     usart_cdev  *cdev   = dev2cdev(d);
-    buffer      *buf    = &cdev->us_wr_buf;
+    c_buffer    *buf    = &cdev->us_wr_buf;
 
     CRIT_START {
         buf->bf_ptr     = ptr;
@@ -78,7 +78,7 @@ static void
 usart_isr_udre (byte d)
 {
     usart_cdev  *cdev   = dev2cdev(d);
-    buffer      *buf    = &cdev->us_wr_buf;
+    c_buffer    *buf    = &cdev->us_wr_buf;
 
     if (buf->bf_len) {
         UDR0    = *buf->bf_ptr++;

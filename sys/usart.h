@@ -20,16 +20,21 @@ typedef struct buffer {
     size_t  bf_len;
 } buffer;
 
+typedef struct c_buffer {
+    const byte  *bf_ptr;
+    size_t      bf_len;
+} c_buffer;
+
 typedef struct usart_cdev {
     struct cdev us_cdev;
-    buffer      us_wr_buf;
+    c_buffer    us_wr_buf;
 } usart_cdev;
 
 __BEGIN_DECLS
 
 void    usart_ioctl     (dev_t d, ioc_t r, uintptr_t p);
 void    usart_open      (dev_t d, byte mode);
-void    usart_write     (dev_t d, byte *ptr, size_t len);
+void    usart_write     (dev_t d, const byte *ptr, size_t len);
 
 __END_DECLS
 
