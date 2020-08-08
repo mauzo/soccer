@@ -13,8 +13,11 @@ CFLAGS+=	-I${.CURDIR}
 
 LDFLAGS+=	-Os -Wl,--gc-sections
 
+#USE_ARDUINO=
+
 defines: ${F}
 	${CC} ${CFLAGS} -dM -E ${F:D${.ALLSRC}:U-x c /dev/null} | sort
 
+.include <avr.arduino.mk>
 .include <avr.arduino.board.mk>
 .include <avr.prog.mk>
