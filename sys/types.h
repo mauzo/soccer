@@ -12,13 +12,15 @@
 
 #include <sys/cdefs.h>
 
-typedef long    off_t;
-
 #ifdef __cplusplus
 # define bool __C_bool_type
 #endif
 
 typedef uint8_t byte;
 typedef uint8_t bool;
+
+typedef byte    dev_t;      /* device number */
+typedef byte    ioc_t;      /* ioctl request */
+typedef long    off_t;      /* LFS */
 
 #endif

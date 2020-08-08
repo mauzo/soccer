@@ -7,9 +7,8 @@
 #ifndef __sys_usart_h
 #define __sys_usart_h
 
-#include <sys/cdefs.h>
-#include <sys/dev.h>
 #include <sys/types.h>
+#include <sys/dev.h>
 
 #include <avr/io.h>
 
@@ -28,7 +27,8 @@ typedef struct usart_cdev {
 
 __BEGIN_DECLS
 
-void    usart_init      (dev_t d, uint16_t baud);
+void    usart_ioctl     (dev_t d, ioc_t r, uintptr_t p);
+void    usart_open      (dev_t d, byte mode);
 void    usart_write     (dev_t d, byte *ptr, size_t len);
 
 __END_DECLS

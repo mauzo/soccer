@@ -4,6 +4,7 @@
 
 #include <sys/types.h>
 #include <sys/dev.h>
+#include <sys/tty.h>
 #include <sys/usart.h>
 
 #include <avr/interrupt.h>
@@ -25,8 +26,10 @@ main (void)
 {
     byte i;
 
+    usart_open(DEV_tty0, DEV_WRITING);
+    usart_ioctl(DEV_tty0, TIOCSETBAUD, 9600);
+    usart_ioctl(DEV_tty0, TIOCSETMODE, CS8);
     _delay_ms(2000);
-    usart_init(DEV_tty0, 9600);
     sei();
 
     while (1) {

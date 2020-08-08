@@ -3,8 +3,6 @@
 
 #include <sys/types.h>
 
-typedef byte    dev_t;
-
 typedef const __flash struct device {
     void    *d_cdev;
 } device;
