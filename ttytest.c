@@ -31,9 +31,9 @@ main (void)
 
     while (1) {
         for (i = 0; i < lengthof(msgs); i++) {
-            usart_poll(DEV_tty0, DEV_WRITING);
+            poll(DEV_tty0, DEV_WRITING);
             usart_write(DEV_tty0, msgs[i].bf_ptr, msgs[i].bf_len);
-            usart_poll(DEV_tty0, DEV_WRITING);
+            poll(DEV_tty0, DEV_WRITING);
             usart_write(DEV_tty0, _S("\r\n"));
             _delay_ms(500);
         }

@@ -27,20 +27,6 @@ usart_init (byte d _UNUSED, uint16_t baud)
     } CRIT_END;
 }
 
-bool
-usart_poll (byte d, byte mode)
-{
-    usart_cdev  *cdev   = dev2cdev(d);
-    byte        *flg    = &cdev->us_flags;
-
-    if (!(*flg & mode))
-        return 1;
-
-    sleep_while(*flg & mode);
-
-    return 1;
-}
-
 void
 usart_write (byte d, byte *ptr, size_t len)
 {
@@ -51,8 +37,8 @@ usart_write (byte d, byte *ptr, size_t len)
         buf->bf_ptr     = ptr;
         buf->bf_len     = len;
 
-        cdev->us_flags  |= DEV_WRITING;
         UCSR0B          |= USART_ENABLE_DRE;
+        cdev_set_flag(&cdev->us_cdev, DEV_WRITING);
     } CRIT_END;
 }
 
@@ -71,7 +57,7 @@ usart_isr_udre (byte d)
     }
     else {
         UCSR0B          &= ~USART_ENABLE_DRE;
-        cdev->us_flags  &= ~DEV_WRITING;
+        cdev_clr_flag(&cdev->us_cdev, DEV_WRITING);
     }
 }
 

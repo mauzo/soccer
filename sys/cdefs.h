@@ -10,5 +10,6 @@
 #endif
 
 #define _UNUSED __attribute__((unused))
+#define _MACRO  static __inline
 
 #endif

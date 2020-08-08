@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <sys/cdefs.h>
+
 typedef long    off_t;
 
 #ifdef __cplusplus
