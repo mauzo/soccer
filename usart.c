@@ -12,21 +12,29 @@
 
 #include <avr/interrupt.h>
 
-void
-usart_open (dev_t d _UNUSED, byte mode)
-{
-    usart_cdev  *cd     = dev2cdev(d);
+static void usart_ioctl     (cdev_t *c, ioc_t r, uintptr_t p);
+static void usart_open      (cdev_t *c, byte mode);
+static void usart_write     (cdev_t *c, const byte *ptr, size_t len);
 
+devsw_t usart_devsw = {
+    sw_open:    usart_open,
+    sw_ioctl:   usart_ioctl,
+    sw_write:   usart_write,
+};
+
+static void
+usart_open (cdev_t *c, byte mode)
+{
     if (mode & DEV_WRITING)
         UCSR0B |= USART_ENABLE_TX;
 
-    cdev_set_flag(&cd->us_cdev, DEV_OPEN);
+    cdev_set_flag(c, DEV_OPEN);
 }
 
 /* XXX this always sets USART0 and ignores the dev_t */
 /* XXX no error checking */
-void
-usart_ioctl (dev_t d _UNUSED, ioc_t r, uintptr_t p)
+static void
+usart_ioctl (cdev_t *c _UNUSED, ioc_t r, uintptr_t p)
 {
     byte        b;
     uint16_t    ubrr;    
@@ -56,18 +64,18 @@ usart_ioctl (dev_t d _UNUSED, ioc_t r, uintptr_t p)
     }
 }
 
-void
-usart_write (byte d, const byte *ptr, size_t len)
+static void
+usart_write (cdev_t *c, const byte *ptr, size_t len)
 {
-    usart_cdev  *cdev   = dev2cdev(d);
-    c_buffer    *buf    = &cdev->us_wr_buf;
+    _cdev_downcast(usart, cd, c);
+    c_buffer    *buf  = &cd->us_wr_buf;
 
     CRIT_START {
         buf->bf_ptr     = ptr;
         buf->bf_len     = len;
 
         UCSR0B          |= USART_ENABLE_DRE;
-        cdev_set_flag(&cdev->us_cdev, DEV_WRITING);
+        cdev_set_flag(c, DEV_WRITING);
     } CRIT_END;
 }
 
@@ -75,18 +83,19 @@ usart_write (byte d, const byte *ptr, size_t len)
  * re-trigger immediately.
  */
 static void
-usart_isr_udre (byte d)
+usart_isr_udre (dev_t d)
 {
-    usart_cdev  *cdev   = dev2cdev(d);
-    c_buffer    *buf    = &cdev->us_wr_buf;
+    cdev_t      *c      = dev2cdev(d);
+    _cdev_downcast(usart, cd, c);
+    c_buffer    *buf    = &cd->us_wr_buf;
 
     if (buf->bf_len) {
         UDR0    = *buf->bf_ptr++;
         buf->bf_len--;
     }
     else {
-        UCSR0B          &= ~USART_ENABLE_DRE;
-        cdev_clr_flag(&cdev->us_cdev, DEV_WRITING);
+        UCSR0B  &= ~USART_ENABLE_DRE;
+        cdev_clr_flag(c, DEV_WRITING);
     }
 }
 

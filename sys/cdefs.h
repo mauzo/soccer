@@ -12,4 +12,6 @@
 #define _UNUSED __attribute__((unused))
 #define _MACRO  static __inline
 
+#define lengthof(x) (sizeof(x)/sizeof(*(x)))
+
 #endif
