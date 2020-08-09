@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+
+use 5.012;
+use warnings;
+
+my @io_h = @ARGV;
+
+sub slurp {
+    my ($f) = @_;
+    local $/ = undef;
+    open my $F, "<", $f or die "can't read '$f'";
+    return <$F>;
+}
+
+sub find_sfr {
+    my ($h, $sfr) = @_;
+
+    my ($typ, $io) = $h =~ /
+        \# define \s+ \Q$sfr\E \s+
+        _SFR_ (MEM|IO) \d+ \( (0x[0-9A-H]+) \)
+    /xi or return;
+
+    #warn "matched [$&]";
+
+    return $typ, hex $io;
+}
+
+sub check_sfr {
+    my ($io_h, $h, $sfr, $want) = @_;
+    
+    my (undef, $io) = find_sfr $h, $sfr;
+    $io //= 0;
+
+    $io == $want
+        or say sprintf "%s: got 0x%x for %s instead of 0x%x.",
+            $io_h, $io, $sfr, $want;
+}
+
+for my $io_h (@io_h) {
+    my $h = slurp $io_h;
+
+    my ($typ, $ucsr0a)  = find_sfr $h, "UCSR0A";
+    unless ($ucsr0a) {
+        #say "$io_h: no UCSR0A, skipping.";
+        next;
+    }
+    $ucsr0a > 0xff and say sprintf "%s: UCSR0A = 0x%x.", $io_h, $ucsr0a;
+    $ucsr0a > 0xdf and say sprintf "%s: UCSR0A = 0x%x > 0xdf", $io_h. $ucsr0a;
+
+    say sprintf "%s: got UCSR0A = 0x%x (%s).", $io_h, $ucsr0a, $typ;
+    check_sfr $io_h, $h, "UCSR0B", $ucsr0a + 1;
+    check_sfr $io_h, $h, "UCSR0C", $ucsr0a + 2;
+    check_sfr $io_h, $h, "UBRR0", $ucsr0a + 4;
+    check_sfr $io_h, $h, "UDR0", $ucsr0a + 6;
+}

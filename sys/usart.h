@@ -18,10 +18,17 @@
 
 typedef struct usart_cdev {
     struct cdev us_cdev;
+    byte        us_iop;
     c_buffer    us_wr_buf;
 } usart_cdev;
 
 extern devsw_t usart_devsw;
+
+#define USART_CSRA(_c)  _SFR_MEM8((_c)->us_iop)
+#define USART_CSRB(_c)  _SFR_MEM8((_c)->us_iop + 1)
+#define USART_CSRC(_c)  _SFR_MEM8((_c)->us_iop + 2)
+#define USART_BRR(_c)   _SFR_MEM16((_c)->us_iop + 4)
+#define USART_DR(_c)    _SFR_MEM8((_c)->us_iop + 6)
 
 __BEGIN_DECLS
 

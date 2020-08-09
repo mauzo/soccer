@@ -24,8 +24,10 @@ devsw_t usart_devsw = {
 static void
 usart_open (cdev_t *c, byte mode)
 {
+    _cdev_downcast(usart, cd, c);
+
     if (mode & DEV_WRITING)
-        UCSR0B |= USART_ENABLE_TX;
+        USART_CSRB(cd) |= USART_ENABLE_TX;
 
     cdev_set_flag(c, DEV_OPEN);
 }
@@ -35,13 +37,14 @@ usart_open (cdev_t *c, byte mode)
 static void
 usart_ioctl (cdev_t *c _UNUSED, ioc_t r, uintptr_t p)
 {
+    _cdev_downcast(usart, cd, c);
     byte        b;
     uint16_t    ubrr;    
 
     switch (r) {
     case TIOCSETBAUD:
-        ubrr    = F_CPU/16/p - 1;
-        UBRR0   = ubrr;
+        ubrr            = F_CPU/16/p - 1;
+        USART_BRR(cd)   = ubrr;
         break;
 
     case TIOCSETMODE:
@@ -58,7 +61,7 @@ usart_ioctl (cdev_t *c _UNUSED, ioc_t r, uintptr_t p)
             if (p & PARODD)
                 b |= (1<<UPM00);
         }
-        UCSR0C  = b;
+        USART_CSRC(cd)  = b;
         break;
     }
 }
@@ -73,7 +76,7 @@ usart_write (cdev_t *c, const byte *ptr, size_t len)
         buf->bf_ptr     = ptr;
         buf->bf_len     = len;
 
-        UCSR0B          |= USART_ENABLE_DRE;
+        USART_CSRB(cd)  |= USART_ENABLE_DRE;
         cdev_set_flag(c, DEV_WRITING);
     } CRIT_END;
 }
@@ -89,11 +92,11 @@ usart_isr_udre (device_t *dev)
     c_buffer    *buf    = &cd->us_wr_buf;
 
     if (buf->bf_len) {
-        UDR0    = *buf->bf_ptr++;
+        USART_DR(cd)    = *buf->bf_ptr++;
         buf->bf_len--;
     }
     else {
-        UCSR0B  &= ~USART_ENABLE_DRE;
+        USART_CSRB(cd)  &= ~USART_ENABLE_DRE;
         cdev_clr_flag(c, DEV_WRITING);
     }
 }
