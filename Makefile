@@ -3,7 +3,11 @@
 
 PROG=	ttytest
 
-SRCS=	devices.c usart.c ttytest.c
+SRCS+=	ttytest.c
+SRCS+=	devices.c syscalls.c
+SRCS+=	${SRCS.y}
+
+SRCS.${mk_usart}=	usart.c
 
 TTY_SPEED=	9600
 

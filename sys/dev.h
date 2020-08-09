@@ -2,6 +2,7 @@
 #define __sys_dev_h
 
 #include <sys/types.h>
+#include <sys/devnames.h>
 
 typedef struct cdev {
     byte    cd_flags;
@@ -22,9 +23,6 @@ typedef const __flash struct device {
 #define     DEV_OPEN        1
 #define     DEV_READING     2
 #define     DEV_WRITING     4
-
-#define DEV_tty0    0
-#define NDEV        1
 
 extern device_t Devices[];
 

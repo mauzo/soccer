@@ -1,6 +1,7 @@
 #ifndef __sys_sleep_h
 #define __sys_sleep_h
 
+#include <avr/interrupt.h>
 #include <avr/sleep.h>
 
 #define sleep_while(_cond) ({ \

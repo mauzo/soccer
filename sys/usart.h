@@ -23,4 +23,10 @@ typedef struct usart_cdev {
 
 extern devsw_t usart_devsw;
 
+__BEGIN_DECLS
+
+void    usart_isr_udre  (device_t *dev);
+
+__END_DECLS
+
 #endif

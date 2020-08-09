@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <sys/atomic.h>
 #include <sys/dev.h>
-#include <sys/sleep.h>
 #include <sys/tty.h>
 #include <sys/usart.h>
 
@@ -82,10 +81,10 @@ usart_write (cdev_t *c, const byte *ptr, size_t len)
 /* This ISR must either set UDR or disable itself. Otherwise it will
  * re-trigger immediately.
  */
-static void
-usart_isr_udre (dev_t d)
+void
+usart_isr_udre (device_t *dev)
 {
-    cdev_t      *c      = dev2cdev(d);
+    cdev_t      *c      = dev->d_cdev;
     _cdev_downcast(usart, cd, c);
     c_buffer    *buf    = &cd->us_wr_buf;
 
@@ -97,11 +96,5 @@ usart_isr_udre (dev_t d)
         UCSR0B  &= ~USART_ENABLE_DRE;
         cdev_clr_flag(c, DEV_WRITING);
     }
-}
-
-/* Install the ISR statically for now, with hardcoded device number */
-ISR(USART_UDRE_vect)
-{
-    usart_isr_udre(0);
 }
 
