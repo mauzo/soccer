@@ -1,5 +1,5 @@
 /*
- * syscalls.c: implement the generic syscalls.
+ * devops.c: implement the generic syscalls.
  * These call through the devsw into the device-specific functions.
  */
 

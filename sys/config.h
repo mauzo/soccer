@@ -1,9 +1,9 @@
 /*
- * sys/devnames.h: define the names of the system devices.
+ * sys/config.h: system configuration.
  */
 
-#ifndef __sys_devnames_h
-#define __sys_devnames_h
+#ifndef __sys_config_h
+#define __sys_config_h
 
 #define DEV_tty0    0
 #define NDEV        1
