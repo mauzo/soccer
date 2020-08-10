@@ -7,7 +7,7 @@
 
 #include <avr/interrupt.h>
 
-static struct usart_cdev    tty0_cdev = { us_iop: 0xC0 };
+static struct usart_cdev    tty0_cdev = { };
 
 device_t Devices[NDEV] = {
     { 

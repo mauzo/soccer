@@ -32,10 +32,9 @@ usart_open (cdev_t *c, byte mode)
     cdev_set_flag(c, DEV_OPEN);
 }
 
-/* XXX this always sets USART0 and ignores the dev_t */
 /* XXX no error checking */
 static void
-usart_ioctl (cdev_t *c _UNUSED, ioc_t r, uintptr_t p)
+usart_ioctl (cdev_t *c, ioc_t r, uintptr_t p)
 {
     _cdev_downcast(usart, cd, c);
     byte        b;
