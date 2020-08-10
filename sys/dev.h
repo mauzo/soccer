@@ -2,7 +2,7 @@
 #define __sys_dev_h
 
 #include <sys/types.h>
-#include <sys/devnames.h>
+#include <sys/config.h>
 
 typedef struct cdev {
     byte    cd_flags;

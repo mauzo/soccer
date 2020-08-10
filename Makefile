@@ -4,7 +4,7 @@
 PROG=	ttytest
 
 SRCS+=	ttytest.c
-SRCS+=	devices.c syscalls.c
+SRCS+=	devices.c devops.c
 SRCS+=	${SRCS.y}
 
 SRCS.${mk_usart}=	usart.c
