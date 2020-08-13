@@ -11,7 +11,7 @@ SRCS.${mk_usart}=	usart.c
 
 TTY_SPEED=	9600
 
-CFLAGS+=	-ffunction-sections -fdata-sections -Os -std=gnu99
+CFLAGS+=	-Os -ffunction-sections -fdata-sections -std=gnu99
 CFLAGS+=	-Wall -Wno-parentheses
 CFLAGS+=	-I${.CURDIR}
 

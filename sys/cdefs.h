@@ -9,8 +9,11 @@
 # define    __END_DECLS
 #endif
 
-#define _UNUSED __attribute__((unused))
-#define _MACRO  static __inline
+#define _UNUSED                 __attribute__((unused))
+#define _ENSURE_USED(_u, _v)    ((void)(_u), (_v))
+
+#define _FLASH                  const __flash
+#define _MACRO                  static __inline
 
 #define lengthof(x) (sizeof(x)/sizeof(*(x)))
 

@@ -4,21 +4,33 @@
 #include <sys/types.h>
 #include <sys/config.h>
 
-typedef struct cdev {
+struct cdev;
+struct devsw;
+struct device;
+
+typedef struct cdev             cdev_t;
+typedef _FLASH struct devsw     devsw_t;
+typedef _FLASH struct device    device_t;
+
+struct cdev {
     byte    cd_flags;
-} cdev_t;
+};
 
-typedef const __flash struct devsw {
-    void    (*sw_open)  (cdev_t *c, byte mode);
-    void    (*sw_ioctl) (cdev_t *c, ioc_t r, uintptr_t p);
-    void    (*sw_read)  (cdev_t *c, byte *b, size_t l);
-    void    (*sw_write) (cdev_t *c, const byte *b, size_t l);
-} devsw_t;
+struct devsw {
+    void    (*sw_open)  (device_t *d, byte mode);
+    void    (*sw_ioctl) (device_t *d, ioc_t r, uintptr_t p);
+    void    (*sw_read)  (device_t *d, byte *b, size_t l);
+    void    (*sw_write) (device_t *d, const byte *b, size_t l);
+};
 
-typedef const __flash struct device {
-    cdev_t      *d_cdev;
+struct device {
     devsw_t     *d_devsw;
-} device_t;
+    cdev_t      *d_cdev;
+    union {
+        _FLASH void *d_fdev;
+        byte        d_config[2];
+    };
+};
 
 #define     DEV_OPEN        1
 #define     DEV_READING     2
@@ -26,16 +38,14 @@ typedef const __flash struct device {
 
 extern device_t Devices[];
 
-#define _cdev_downcast(_typ, _mycd, _cd) \
-    struct _typ ## _cdev *_mycd = (struct _typ ## _cdev *)(_cd)
+#define _device_cdev(_typ, _cd, _dev) \
+    struct _typ ## _cdev *_cd = \
+        (struct _typ ## _cdev *)(_dev)->d_cdev
 
 __BEGIN_DECLS
 
 _MACRO device_t *devnum2dev (dev_t d)
     { return &Devices[d]; }
-
-_MACRO cdev_t *dev2cdev (dev_t d)
-    {   return devnum2dev(d)->d_cdev; }
 
 _MACRO void cdev_set_flag (struct cdev *c, byte f)
     {   c->cd_flags |= f; }

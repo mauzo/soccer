@@ -18,26 +18,22 @@
 
 struct usart_cdev {
     struct cdev us_cdev;
-#ifndef USART_FIXED_IOP
-    byte        us_iop;
-#endif
     c_buffer    us_wr_buf;
 };
 
 extern devsw_t usart_devsw;
 
 #ifdef USART_FIXED_IOP
-/* Make sure we 'use' _c (-Wunused-value/variable) */
-# define USART_IOP(_c) ((void)(_c), USART_FIXED_IOP)
+_MACRO byte usart_iop (device_t *d _UNUSED) { return USART_FIXED_IOP; }
 #else
-# define USART_IOP(_c) (_c)->us_iop
+_MACRO byte usart_iop (device_t *d) { return d->d_config[0]; }
 #endif
 
-#define USART_CSRA(_c)  _SFR_MEM8(USART_IOP(_c))
-#define USART_CSRB(_c)  _SFR_MEM8(USART_IOP(_c) + 1)
-#define USART_CSRC(_c)  _SFR_MEM8(USART_IOP(_c) + 2)
-#define USART_BRR(_c)   _SFR_MEM16(USART_IOP(_c) + 4)
-#define USART_DR(_c)    _SFR_MEM8(USART_IOP(_c) + 6)
+#define USART_CSRA(_d)  _SFR_MEM8(usart_iop(_d))
+#define USART_CSRB(_d)  _SFR_MEM8(usart_iop(_d) + 1)
+#define USART_CSRC(_d)  _SFR_MEM8(usart_iop(_d) + 2)
+#define USART_BRR(_d)   _SFR_MEM16(usart_iop(_d) + 4)
+#define USART_DR(_d)    _SFR_MEM8(usart_iop(_d) + 6)
 
 __BEGIN_DECLS
 
