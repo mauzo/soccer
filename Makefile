@@ -1,9 +1,9 @@
 .include "config.mk"
 .include "../avr-mk/avr.mk"
 
-PROG=	ttytest
+PROG=	gpiotest
 
-SRCS+=	ttytest.c
+SRCS+=	gpiotest.c
 SRCS+=	devices.c devops.c
 SRCS+=	${SRCS.y}
 
