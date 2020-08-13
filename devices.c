@@ -3,6 +3,7 @@
  */
 
 #include <sys/dev.h>
+#include <sys/gpio.h>
 #include <sys/usart.h>
 
 #include <avr/interrupt.h>
@@ -10,10 +11,14 @@
 static struct usart_cdev    tty0_cdev = { };
 
 device_t Devices[NDEV] = {
-    { 
+    {   /* tty0 */
         d_devsw:    &usart_devsw,
         d_cdev:     (cdev_t *)&tty0_cdev,
         d_config:   { 0xC0, 0 },
+    },
+    {   /* gpio0 */
+        d_devsw:    &gpio_devsw,
+        d_config:   { 0x23, 23 },
     },
 };
 

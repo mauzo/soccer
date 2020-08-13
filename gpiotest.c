@@ -53,7 +53,9 @@ print (const char *s)
 int
 main (void)
 {
-    int     i;
+    int                 i;
+    struct gpio_pin     gppin = { 0 };
+    struct gpio_req     gpreq = { 0 };
 
     open(DEV_tty0, DEV_WRITING);
     ioctl(DEV_tty0, TIOCSETBAUD, 9600);
@@ -62,21 +64,31 @@ main (void)
     _delay_ms(1000);
     print("Starting...\r\n");
 
+    gppin.gp_flags  = GPIO_PIN_OUTPUT;
+    gpreq.gp_value  = GPIO_PIN_LOW;
     for (i = 0; i < NPINS; i++) {
         xprintf("Setting pin %i to output low.\r\n", pin[i]);
-        GPIO_PORT(pin[i])   &= ~GPIO_BIT(pin[i]);
-        GPIO_DDR(pin[i])    |= GPIO_BIT(pin[i]);
+
+        gppin.gp_pin    = pin[i];
+        ioctl(DEV_gpio0, GPIOSETCONFIG, &gppin);
+
+        gpreq.gp_pin    = pin[i];
+        ioctl(DEV_gpio0, GPIOSET, &gpreq);
     }
 
     while (1) {
         for (i = 0; i < NPINS; i++) {
-            _delay_ms(1000);
-            xprintf("Setting pin %i high.\r\n", pin[i]);
-            GPIO_PORT(pin[i])  |= GPIO_BIT(pin[i]);
+            gpreq.gp_pin    = pin[i];
 
             _delay_ms(1000);
+            xprintf("Setting pin %i high.\r\n", pin[i]);
+            gpreq.gp_value   = GPIO_PIN_HIGH;
+            ioctl(DEV_gpio0, GPIOSET, &gpreq);
+
+            _delay_ms(500);
             xprintf("Setting pin %i low.\r\n", pin[i]);
-            GPIO_PORT(pin[i])  &= ~GPIO_BIT(pin[i]);
+            gpreq.gp_value  = GPIO_PIN_LOW;
+            ioctl(DEV_gpio0, GPIOSET, &gpreq);
         }
     }
 

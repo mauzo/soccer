@@ -4,7 +4,7 @@
 PROG=	gpiotest
 
 SRCS+=	gpiotest.c
-SRCS+=	devices.c devops.c
+SRCS+=	devices.c devops.c gpio.c panic.c
 SRCS+=	${SRCS.y}
 
 SRCS.${mk_usart}=	usart.c
@@ -16,6 +16,7 @@ CFLAGS+=	-Wall -Wno-parentheses
 CFLAGS+=	-I${.CURDIR}
 
 LDFLAGS+=	-Os -Wl,--gc-sections
+LIBS+=		-Wl,-u,vfprintf -lprintf_min
 
 #USE_ARDUINO=
 
