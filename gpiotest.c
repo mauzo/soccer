@@ -2,28 +2,47 @@
  * gpiotest
  */
 
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <sys/types.h>
 #include <sys/buf.h>
 #include <sys/dev.h>
+#include <sys/gpio.h>
 #include <sys/tty.h>
+
+#include <arduino/uno.h>
 
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
 #define _S(_s) (const byte *)(_s), sizeof(_s)-1
 
-/* Port B, pin 5 */
+#define NPINS 4
+const byte pin[NPINS] = {
+    GPIO_PIN_13,
+    GPIO_PIN_10,
+    GPIO_PIN_3,
+    GPIO_PIN_A1,
+};
 
-#define PIN 5
+static char buf[64];
 
-#define GPIO_IOP        0x23
-#define GPIO_IOPx(_p)   (GPIO_IOP + ((_p) / 8) * 3)
-#define GPIO_PIN(_p)    _SFR_MEM8(GPIO_IOPx(_p))
-#define GPIO_DDR(_p)    _SFR_MEM8(GPIO_IOPx(_p) + 1)
-#define GPIO_PORT(_p)   _SFR_MEM8(GPIO_IOPx(_p) + 2)
-#define GPIO_BIT(_p)    (1 << ((_p) % 8))
+void
+xprintf (const char *f, ...)
+{
+    va_list     ap;
+
+    /* We must poll before formatting or we overwrite the buffer */
+    poll(DEV_tty0, DEV_WRITING);
+
+    va_start(ap, f);
+    vsnprintf(buf, sizeof(buf), f, ap);
+    va_end(ap);
+
+    write(DEV_tty0, (byte *)buf, strlen(buf), 0);
+}
 
 void
 print (const char *s)
@@ -34,6 +53,8 @@ print (const char *s)
 int
 main (void)
 {
+    int     i;
+
     open(DEV_tty0, DEV_WRITING);
     ioctl(DEV_tty0, TIOCSETBAUD, 9600);
     ioctl(DEV_tty0, TIOCSETMODE, CS8);
@@ -41,18 +62,22 @@ main (void)
     _delay_ms(1000);
     print("Starting...\r\n");
 
-    print("Setting pin B7 to output low.\r\n");
-    GPIO_PORT(PIN)  &= ~GPIO_BIT(PIN);
-    GPIO_DDR(PIN)   |= GPIO_BIT(PIN);
+    for (i = 0; i < NPINS; i++) {
+        xprintf("Setting pin %i to output low.\r\n", pin[i]);
+        GPIO_PORT(pin[i])   &= ~GPIO_BIT(pin[i]);
+        GPIO_DDR(pin[i])    |= GPIO_BIT(pin[i]);
+    }
 
     while (1) {
-        _delay_ms(1000);
-        print("Setting pin high.\r\n");
-        GPIO_PORT(PIN)  |= GPIO_BIT(PIN);
+        for (i = 0; i < NPINS; i++) {
+            _delay_ms(1000);
+            xprintf("Setting pin %i high.\r\n", pin[i]);
+            GPIO_PORT(pin[i])  |= GPIO_BIT(pin[i]);
 
-        _delay_ms(1000);
-        print("Setting pin low.\r\n");
-        GPIO_PORT(PIN)  &= ~GPIO_BIT(PIN);
+            _delay_ms(1000);
+            xprintf("Setting pin %i low.\r\n", pin[i]);
+            GPIO_PORT(pin[i])  &= ~GPIO_BIT(pin[i]);
+        }
     }
 
     write(DEV_tty0, _S("Finished.\r\n"), F_WAIT|F_SYNC);
