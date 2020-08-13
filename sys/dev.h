@@ -32,9 +32,14 @@ struct device {
     };
 };
 
-#define     DEV_OPEN        1
-#define     DEV_READING     2
-#define     DEV_WRITING     4
+/* Flags for open/poll */
+#define     DEV_OPEN        0x1     /* dev is ready for use */
+#define     DEV_READING     0x2     /* dev is currently reading */
+#define     DEV_WRITING     0x4     /* dev is currently writing */
+
+/* Flags for read/write */
+#define     F_WAIT          0x1     /* wait for device to be ready */
+#define     F_SYNC          0x2     /* wait for read/write to finish */
 
 extern device_t Devices[];
 

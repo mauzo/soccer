@@ -57,7 +57,7 @@ read (dev_t d, byte *b, size_t l, byte f _UNUSED)
 }
 
 void
-write (dev_t d, const byte *b, size_t l, byte f _UNUSED)
+write (dev_t d, const byte *b, size_t l, byte f)
 {
     device_t    *dev    = devnum2dev(d);
     devsw_t     *dsw    = dev->d_devsw;
@@ -65,5 +65,12 @@ write (dev_t d, const byte *b, size_t l, byte f _UNUSED)
     if (!dsw->sw_write)
         return;
 
+    if (f & F_WAIT)
+        poll(d, DEV_WRITING);
+
     dsw->sw_write(dev, b, l);
+
+    /* XXX someone else might get in and start another write */
+    if (f & F_SYNC)
+        poll(d, DEV_WRITING);
 }
