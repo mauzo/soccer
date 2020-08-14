@@ -36,29 +36,34 @@ usart_open (device_t *d, byte mode)
 static void
 usart_ioctl (device_t *d, ioc_t r, iocp_t p)
 {
+    int         i;
     byte        b;
     uint16_t    ubrr;    
 
     switch (r) {
     case TIOCSETBAUD:
-        ubrr            = F_CPU/16/p - 1;
+        i               = p.iop_int;
+        ubrr            = F_CPU/16/i - 1;
         USART_BRR(d)    = ubrr;
         break;
 
     case TIOCSETMODE:
+        i       = p.iop_int;
         b       = 0;
-        switch (p & CSIZE) {
+
+        switch (i & CSIZE) {
         case CS5:                       break;
         case CS6:   b |= (1<<UCSZ00);   break;
         case CS7:   b |= (2<<UCSZ00);   break;
         case CS8:   b |= (3<<UCSZ00);   break;
         }
-        if (p & CSTOPB) b |= (1<<USBS0);
-        if (p & PARENB) {
+        if (i & CSTOPB) b |= (1<<USBS0);
+        if (i & PARENB) {
             b |= (1<<UPM01);
-            if (p & PARODD)
+            if (i & PARODD)
                 b |= (1<<UPM00);
         }
+
         USART_CSRC(d)   = b;
         break;
     }

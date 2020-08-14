@@ -12,6 +12,8 @@
 #define _UNUSED                 __attribute__((unused))
 #define _ENSURE_USED(_u, _v)    ((void)(_u), (_v))
 
+#define _TRANSPARENT_UNION      __attribute__((transparent_union))
+
 #define _FLASH                  const __flash
 #define _MACRO                  static __inline
 

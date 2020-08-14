@@ -7,7 +7,7 @@
 #include <sys/sleep.h>
 
 void
-ioctl (dev_t d, ioc_t r, uintptr_t p)
+ioctl (dev_t d, ioc_t r, iocp_t p)
 {
     device_t    *dev    = devnum2dev(d);
     devsw_t     *dsw    = dev->d_devsw;

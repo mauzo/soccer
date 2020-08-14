@@ -23,11 +23,11 @@ gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
 
     switch (r) {
     case GPIOMAXPIN:
-        *(byte *)p  = sc->gp_maxpin;
+        *(byte *)p.iop_ptr = sc->gp_maxpin;
         break;
 
     case GPIOSETCONFIG:
-        pin = (struct gpio_pin *)p;
+        pin = p.iop_ptr;
         n   = pin->gp_pin;
         bit = GPIO_BIT(d, n);
 
@@ -42,7 +42,7 @@ gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
         break;
 
     case GPIOSET:
-        req = (struct gpio_req *)p;
+        req = p.iop_ptr;
         n   = req->gp_pin;
         bit = GPIO_BIT(d, n);
 

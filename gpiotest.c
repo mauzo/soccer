@@ -70,10 +70,10 @@ main (void)
         xprintf("Setting pin %i to output low.\r\n", pin[i]);
 
         gppin.gp_pin    = pin[i];
-        ioctl(DEV_gpio0, GPIOSETCONFIG, (iocp_t)&gppin);
+        ioctl(DEV_gpio0, GPIOSETCONFIG, &gppin);
 
         gpreq.gp_pin    = pin[i];
-        ioctl(DEV_gpio0, GPIOSET, (iocp_t)&gpreq);
+        ioctl(DEV_gpio0, GPIOSET, &gpreq);
     }
 
     while (1) {
@@ -83,12 +83,12 @@ main (void)
             _delay_ms(1000);
             xprintf("Setting pin %i high.\r\n", pin[i]);
             gpreq.gp_value   = GPIO_PIN_HIGH;
-            ioctl(DEV_gpio0, GPIOSET, (iocp_t)&gpreq);
+            ioctl(DEV_gpio0, GPIOSET, &gpreq);
 
             _delay_ms(500);
             xprintf("Setting pin %i low.\r\n", pin[i]);
             gpreq.gp_value  = GPIO_PIN_LOW;
-            ioctl(DEV_gpio0, GPIOSET, (iocp_t)&gpreq);
+            ioctl(DEV_gpio0, GPIOSET, &gpreq);
         }
     }
 
