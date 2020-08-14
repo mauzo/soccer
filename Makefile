@@ -4,10 +4,14 @@
 PROG=	gpiotest
 
 SRCS+=	gpiotest.c
-SRCS+=	devices.c devops.c gpio.c panic.c
+SRCS+=	devices.c devops.c panic.c
 SRCS+=	${SRCS.y}
 
-SRCS.${mk_usart}=	usart.c
+mk_gpio=	y
+mk_usart=	y
+
+SRCS.${mk_gpio}+=	gpio.c
+SRCS.${mk_usart}+=	usart.c
 
 TTY_SPEED=	9600
 
