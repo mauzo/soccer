@@ -16,13 +16,14 @@ devsw_t gpio_devsw = {
 static void
 gpio_ioctl (device_t *d, ioc_t r, uintptr_t p)
 {
+    gpio_softc_t    *sc     = gpio_softc(d);
     byte            n, bit;
     struct gpio_pin *pin;
     struct gpio_req *req;
 
     switch (r) {
     case GPIOMAXPIN:
-        *(byte *)p  = gpio_max_pin(d);
+        *(byte *)p  = sc->gp_maxpin;
         break;
 
     case GPIOSETCONFIG:

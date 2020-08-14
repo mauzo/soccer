@@ -21,13 +21,15 @@ struct usart_cdev {
     c_buffer    us_wr_buf;
 };
 
+struct usart_softc {
+    byte        us_iop;
+};
+
 extern devsw_t usart_devsw;
 
-#ifdef USART_FIXED_IOP
-_MACRO byte usart_iop (device_t *d _UNUSED) { return USART_FIXED_IOP; }
-#else
-_MACRO byte usart_iop (device_t *d) { return d->d_config[0]; }
-#endif
+_HANDLE_FIXED_SOFTC(usart);
+
+_MACRO byte usart_iop (device_t *d) { return usart_softc(d)->us_iop; }
 
 #define USART_CSRA(_d)  _SFR_MEM8(usart_iop(_d))
 #define USART_CSRB(_d)  _SFR_MEM8(usart_iop(_d) + 1)

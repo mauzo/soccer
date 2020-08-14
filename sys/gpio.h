@@ -21,6 +21,11 @@ struct gpio_req {
     byte    gp_value;
 };
 
+struct gpio_softc {
+    byte    gp_iop;
+    byte    gp_maxpin;
+};
+
 /* for gpio_req->gp_value */
 #define GPIO_PIN_LOW        0x0
 #define GPIO_PIN_HIGH       0x1
@@ -39,16 +44,17 @@ struct gpio_req {
 
 extern devsw_t  gpio_devsw;
 
-_MACRO byte gpio_iop_base (device_t *d) { return d->d_config[0]; }
-_MACRO byte gpio_max_pin (device_t *d) { return d->d_config[1]; }
+_HANDLE_FIXED_SOFTC(gpio);
 
 _MACRO byte 
 gpio_iop (device_t *d, byte pin)
 {
-    if (pin > gpio_max_pin(d))
+    gpio_softc_t    *sc  = gpio_softc(d);
+
+    if (pin > sc->gp_maxpin)
         panic("GPIO pin number too large");
 
-    return gpio_iop_base(d) + (pin/8)*3;
+    return sc->gp_iop + (pin/8)*3;
 }
 
 #define GPIO_PIN(_d, _p)    _SFR_MEM8(gpio_iop(_d, _p))

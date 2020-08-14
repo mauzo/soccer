@@ -14,11 +14,11 @@ device_t Devices[NDEV] = {
     {   /* tty0 */
         d_devsw:    &usart_devsw,
         d_cdev:     (cdev_t *)&tty0_cdev,
-        d_config:   { 0xC0, 0 },
+        d_inplace:  { 0xC0, 0x00 },
     },
     {   /* gpio0 */
         d_devsw:    &gpio_devsw,
-        d_config:   { 0x23, 23 },
+        d_inplace:  { 0x23, 23 },
     },
 };
 
