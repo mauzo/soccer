@@ -11,7 +11,7 @@
 
 #include <avr/interrupt.h>
 
-static void usart_ioctl     (device_t *c, ioc_t r, uintptr_t p);
+static void usart_ioctl     (device_t *c, ioc_t r, iocp_t p);
 static void usart_open      (device_t *c, byte mode);
 static void usart_write     (device_t *c, const byte *ptr, size_t len);
 
@@ -34,7 +34,7 @@ usart_open (device_t *d, byte mode)
 
 /* XXX no error checking */
 static void
-usart_ioctl (device_t *d, ioc_t r, uintptr_t p)
+usart_ioctl (device_t *d, ioc_t r, iocp_t p)
 {
     byte        b;
     uint16_t    ubrr;    

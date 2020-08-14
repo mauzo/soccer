@@ -7,14 +7,14 @@
 #include <sys/dev.h>
 #include <sys/gpio.h>
 
-static void gpio_ioctl (device_t *d, ioc_t r, uintptr_t p);
+static void gpio_ioctl (device_t *d, ioc_t r, iocp_t p);
 
 devsw_t gpio_devsw = {
     sw_ioctl:   gpio_ioctl,
 };
 
 static void
-gpio_ioctl (device_t *d, ioc_t r, uintptr_t p)
+gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
 {
     gpio_softc_t    *sc     = gpio_softc(d);
     byte            n, bit;

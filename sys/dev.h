@@ -27,7 +27,7 @@ struct cdev {
  */
 struct devsw {
     void    (*sw_open)  (device_t *d, byte mode);
-    void    (*sw_ioctl) (device_t *d, ioc_t r, uintptr_t p);
+    void    (*sw_ioctl) (device_t *d, ioc_t r, iocp_t p);
     void    (*sw_read)  (device_t *d, byte *b, size_t l);
     void    (*sw_write) (device_t *d, const byte *b, size_t l);
 };
@@ -121,7 +121,7 @@ _MACRO void cdev_set_flag (struct cdev *c, byte f)
 _MACRO void cdev_clr_flag (struct cdev *c, byte f)
     {   c->cd_flags &= ~f; }
 
-void    ioctl   (dev_t d, ioc_t r, uintptr_t p);
+void    ioctl   (dev_t d, ioc_t r, iocp_t p);
 void    open    (dev_t d, byte mode);
 bool    poll    (dev_t d, byte mode);
 void    read    (dev_t d, byte *b, size_t l, byte f);

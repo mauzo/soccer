@@ -19,8 +19,9 @@
 typedef uint8_t byte;
 typedef uint8_t bool;
 
-typedef byte    dev_t;      /* device number */
-typedef byte    ioc_t;      /* ioctl request */
-typedef long    off_t;      /* LFS */
+typedef byte        dev_t;      /* device number */
+typedef byte        ioc_t;      /* ioctl request */
+typedef uintptr_t   iocp_t;     /* ioctl parameter */
+typedef long        off_t;      /* LFS */
 
 #endif
