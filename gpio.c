@@ -3,6 +3,8 @@
  *
  */
 
+#include <xprintf.h>
+
 #include <sys/types.h>
 #include <sys/dev.h>
 #include <sys/gpio.h>
@@ -12,6 +14,39 @@ static void gpio_ioctl (device_t *d, ioc_t r, iocp_t p);
 devsw_t gpio_devsw = {
     sw_ioctl:   gpio_ioctl,
 };
+
+static void
+gpio_set_config (device_t *d, byte n, byte flags)
+{
+    byte    bit = GPIO_BIT(d, n);
+
+    if (flags & GPIO_PIN_INPUT) {
+        xprintf("Setting pin %d to input.\r\n", n);
+        GPIO_DDR(d, n)  &= ~bit;
+
+        if (flags & GPIO_PIN_PULLUP) {
+            xprintf("Setting pin %d to pullup.\r\n", n);
+            GPIO_PORT(d, n) |= bit;
+        }
+        else {
+            xprintf("Setting pin %d to no-pullup.\r\n", n);
+            GPIO_PORT(d, n) &= ~bit;
+        }
+    }
+    else if (flags & GPIO_PIN_OUTPUT) {
+        if (flags & GPIO_PIN_PRESET_LOW) {
+            xprintf("Setting pin %d to low.\r\n", n);
+            GPIO_PORT(d, n) &= ~bit;
+        }
+        else if (flags & GPIO_PIN_PRESET_HIGH) {
+            xprintf("Setting pin %d to high.\r\n", n);
+            GPIO_PORT(d, n) |= bit;
+        }
+
+        xprintf("Setting pin %d to output.\r\n", n);
+        GPIO_DDR(d, n)  |= bit;
+    }
+}
 
 static void
 gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
@@ -28,16 +63,15 @@ gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
 
     case GPIOSETCONFIG:
         pin = p.iop_ptr;
-        n   = pin->gp_pin;
+        gpio_set_config(d, pin->gp_pin, pin->gp_flags);
+        break;
+
+    case GPIOGET:
+        req = p.iop_ptr;
+        n   = req->gp_pin;
         bit = GPIO_BIT(d, n);
 
-        if (pin->gp_flags & GPIO_PIN_PULLUP)
-            GPIO_PORT(d, n) |= bit;
-
-        if (pin->gp_flags & GPIO_PIN_INPUT)
-            GPIO_DDR(d, n)  &= ~bit;
-        if (pin->gp_flags & GPIO_PIN_OUTPUT)
-            GPIO_DDR(d, n)  |= bit;
+        req->gp_value   = (GPIO_PIN(d, n) & bit) ? 1 : 0;
 
         break;
 
@@ -51,6 +85,12 @@ gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
         else
             GPIO_PORT(d, n) &= ~bit;
 
+        break;
+
+    case GPIOTOGGLE:
+        req = p.iop_ptr;
+        n   = req->gp_pin;
+        GPIO_PIN(d, n) |= GPIO_BIT(d, n);
         break;
     }
 }

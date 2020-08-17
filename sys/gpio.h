@@ -31,9 +31,11 @@ struct gpio_softc {
 #define GPIO_PIN_HIGH       0x1
 
 /* for gpio_pin->gp_flags */
-#define GPIO_PIN_INPUT      0x01
-#define GPIO_PIN_OUTPUT     0x02
-#define GPIO_PIN_PULLUP     0x04
+#define GPIO_PIN_INPUT          0x01
+#define GPIO_PIN_OUTPUT         0x02
+#define GPIO_PIN_PULLUP         0x04
+#define GPIO_PIN_PRESET_HIGH    0x04    /* the same as PULLUP */
+#define GPIO_PIN_PRESET_LOW     0x08
 
 /* ioctls */
 #define GPIOMAXPIN          0x01
@@ -41,6 +43,7 @@ struct gpio_softc {
 #define GPIOSETCONFIG       0x03
 #define GPIOGET             0x04
 #define GPIOSET             0x05
+#define GPIOTOGGLE          0x06
 
 extern devsw_t  gpio_devsw;
 
