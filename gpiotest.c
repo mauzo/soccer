@@ -41,6 +41,13 @@ setup_tty (void)
     sei();
     _delay_ms(1000);
     print("Starting...\r\n");
+    xprintf("Printf test...\r\n");
+    xprintf("...%%\r\n");
+    xprintf("...[%u]\r\n", 42);
+    xprintf("...[%x]\r\n", 0xab);
+    xprintf("...[%d]\r\n", 42);
+    xprintf("...[%d]\r\n", -42);
+    xprintf("...[%s]\r\n", "hello");
 }
 
 static void

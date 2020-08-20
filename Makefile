@@ -20,7 +20,6 @@ CFLAGS+=	-Werror -Wall -Wno-parentheses
 CFLAGS+=	-I${.CURDIR}
 
 LDFLAGS+=	-Os -Wl,--gc-sections
-LIBS+=		-Wl,-u,vfprintf -lprintf_min
 
 #USE_ARDUINO=
 
