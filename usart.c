@@ -81,7 +81,10 @@ usart_isr_udre (device_t *dev)
     iovec_t     *iov    = &cd->cd_writing;
 
     if (iov->iov_len) {
-        USART_DR(dev)   = *iov->iov_base++;
+        if (cd->cd_flags & DEV_WR_FLASH)
+            USART_DR(dev)   = *(_FLASH byte *)iov->iov_base++;
+        else
+            USART_DR(dev)   = *(const byte *)iov->iov_base++;
         iov->iov_len--;
     }
     else {

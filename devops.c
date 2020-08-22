@@ -84,11 +84,15 @@ setup_write (device_t *d, const byte *b, size_t l, byte f)
     cdev_rw_t   *cd     = (cdev_rw_t *)d->d_cdev;
     iovec_t     *iov    = &cd->cd_writing;
 
-    iov->iov_len    = l;
     iov->iov_base   = (void *)b;
+    iov->iov_len    = l;
+
+    if (f & F_FLASH) 
+        cd->cd_flags    |= DEV_WR_FLASH;
+    else
+        cd->cd_flags    &= ~DEV_WR_FLASH;
 
     cd->cd_flags    |= DEV_WRITING;
-    cd->cd_flags    &= ~DEV_WR_FLASH;
 }
 
 void

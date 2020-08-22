@@ -14,9 +14,9 @@
 
 
 static iovec_t msgs[] = {
-    str2iov("Hello world!"),
-    str2iov("foobar"),
-    str2iov("Goodbye..."),
+    str2iovf("Hello world!"),
+    str2iovf("foobar"),
+    str2iovf("Goodbye..."),
 };
 
 int
@@ -30,9 +30,11 @@ main (void)
     _delay_ms(2000);
     sei();
 
+    write(DEV_tty0, (byte *)"Starting\r\n", 10, F_WAIT);
+
     while (1) {
         for (i = 0; i < lengthof(msgs); i++) {
-            write(DEV_tty0, msgs[i].iov_base, msgs[i].iov_len, F_WAIT);
+            write(DEV_tty0, msgs[i].iov_base, msgs[i].iov_len, F_WAIT|F_FLASH);
             write(DEV_tty0, (byte *)"\r\n", 2, F_WAIT);
             _delay_ms(500);
         }
