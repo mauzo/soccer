@@ -3,7 +3,7 @@
  */
 
 #include <sys/types.h>
-#include <sys/buf.h>
+#include <sys/uio.h>
 #include <sys/dev.h>
 #include <sys/tty.h>
 
@@ -13,10 +13,10 @@
 #define _S(_s) (const byte *)(_s), sizeof(_s)-1
 
 
-static c_buffer msgs[] = {
-    MKBUF("Hello world!"),
-    MKBUF("foobar"),
-    MKBUF("Goodbye..."),
+static iovec_t msgs[] = {
+    str2iov("Hello world!"),
+    str2iov("foobar"),
+    str2iov("Goodbye..."),
 };
 
 int
@@ -32,8 +32,8 @@ main (void)
 
     while (1) {
         for (i = 0; i < lengthof(msgs); i++) {
-            write(DEV_tty0, msgs[i].bf_ptr, msgs[i].bf_len, F_WAIT);
-            write(DEV_tty0, _S("\r\n"), F_WAIT);
+            write(DEV_tty0, msgs[i].iov_base, msgs[i].iov_len, F_WAIT);
+            write(DEV_tty0, (byte *)"\r\n", 2, F_WAIT);
             _delay_ms(500);
         }
         _delay_ms(1000);

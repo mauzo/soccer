@@ -8,8 +8,8 @@
 #define __sys_usart_h
 
 #include <sys/types.h>
-#include <sys/buf.h>
 #include <sys/dev.h>
+#include <sys/uio.h>
 
 #include <avr/io.h>
 
@@ -17,8 +17,7 @@
 #define USART_ENABLE_DRE    (1<<UDRIE0)
 
 struct usart_cdev {
-    struct cdev us_cdev;
-    c_buffer    us_wr_buf;
+    struct cdev_rw  us_cdev;
 };
 
 struct usart_softc {

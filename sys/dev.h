@@ -3,12 +3,14 @@
 
 #include <sys/types.h>
 #include <sys/config.h>
+#include <sys/uio.h>
 
 struct cdev;
 struct devsw;
 struct device;
 
 typedef struct cdev             cdev_t;
+typedef struct cdev_rw          cdev_rw_t;
 typedef _FLASH struct devsw     devsw_t;
 typedef _FLASH void             softc_t;
 typedef _FLASH struct device    device_t;
@@ -21,6 +23,12 @@ struct cdev {
     byte    cd_flags;
 };
 
+struct cdev_rw {
+    byte            cd_flags;
+    struct iovec    cd_reading;
+    struct iovec    cd_writing;
+};
+
 /* The devsw lives in flash and holds function pointers to the device
  * methods. Currently there is only one kind of devsw but some methods
  * may not be implemented by some devices.
@@ -28,8 +36,8 @@ struct cdev {
 struct devsw {
     void    (*sw_open)  (device_t *d, byte mode);
     void    (*sw_ioctl) (device_t *d, ioc_t r, iocp_t p);
-    void    (*sw_read)  (device_t *d, byte *b, size_t l);
-    void    (*sw_write) (device_t *d, const byte *b, size_t l);
+    void    (*sw_read)  (device_t *d);
+    void    (*sw_write) (device_t *d);
 };
 
 /* The softc lives in flash and holds the device-specific configuration
@@ -52,10 +60,12 @@ struct device {
 #define     DEV_OPEN        0x1     /* dev is ready for use */
 #define     DEV_READING     0x2     /* dev is currently reading */
 #define     DEV_WRITING     0x4     /* dev is currently writing */
+#define     DEV_WR_FLASH    0x8     /* dev is writing from flash */
 
 /* Flags for read/write */
 #define     F_WAIT          0x1     /* wait for device to be ready */
 #define     F_SYNC          0x2     /* wait for read/write to finish */
+#define     F_FLASH         0x4     /* write from flash */
 
 extern device_t Devices[];
 

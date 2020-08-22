@@ -13,7 +13,7 @@
 
 static void usart_ioctl     (device_t *c, ioc_t r, iocp_t p);
 static void usart_open      (device_t *c, byte mode);
-static void usart_write     (device_t *c, const byte *ptr, size_t len);
+static void usart_write     (device_t *c);
 
 devsw_t usart_devsw = {
     sw_open:    usart_open,
@@ -24,12 +24,8 @@ devsw_t usart_devsw = {
 static void
 usart_open (device_t *d, byte mode)
 {
-    _device_cdev(usart, cd, d);
-
     if (mode & DEV_WRITING)
         USART_CSRB(d)   |= USART_ENABLE_TX;
-
-    cdev_set_flag(&cd->us_cdev, DEV_OPEN);
 }
 
 /* XXX no error checking */
@@ -70,18 +66,9 @@ usart_ioctl (device_t *d, ioc_t r, iocp_t p)
 }
 
 static void
-usart_write (device_t *d, const byte *ptr, size_t len)
+usart_write (device_t *d)
 {
-    _device_cdev(usart, cd, d);
-    c_buffer    *buf  = &cd->us_wr_buf;
-
-    CRIT_START {
-        buf->bf_ptr     = ptr;
-        buf->bf_len     = len;
-
-        USART_CSRB(d)   |= USART_ENABLE_DRE;
-        cdev_set_flag(&cd->us_cdev, DEV_WRITING);
-    } CRIT_END;
+    USART_CSRB(d)   |= USART_ENABLE_DRE;
 }
 
 /* This ISR must either set UDR or disable itself. Otherwise it will
@@ -90,16 +77,16 @@ usart_write (device_t *d, const byte *ptr, size_t len)
 void
 usart_isr_udre (device_t *dev)
 {
-    _device_cdev(usart, cd, dev);
-    c_buffer    *buf    = &cd->us_wr_buf;
+    cdev_rw_t   *cd     = (cdev_rw_t *)dev->d_cdev;
+    iovec_t     *iov    = &cd->cd_writing;
 
-    if (buf->bf_len) {
-        USART_DR(dev)   = *buf->bf_ptr++;
-        buf->bf_len--;
+    if (iov->iov_len) {
+        USART_DR(dev)   = *iov->iov_base++;
+        iov->iov_len--;
     }
     else {
         USART_CSRB(dev) &= ~USART_ENABLE_DRE;
-        cdev_clr_flag(&cd->us_cdev, DEV_WRITING);
+        cd->cd_flags    &= ~DEV_WRITING;
     }
 }
 
