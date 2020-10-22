@@ -4,7 +4,7 @@
 PROG=	ttytest
 
 SRCS+=	ttytest.c
-SRCS+=	devices.c devops.c panic.c xprintf.c
+SRCS+=	devices.c devops.c panic.c xprintf.c main.c
 SRCS+=	${SRCS.y}
 
 mk_gpio=	y

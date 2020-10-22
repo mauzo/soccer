@@ -9,6 +9,7 @@
 # define    __END_DECLS
 #endif
 
+#define _DEAD                   __attribute__((noreturn))
 #define _UNUSED                 __attribute__((unused))
 #define _ENSURE_USED(_u, _v)    ((void)(_u), (_v))
 

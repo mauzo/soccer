@@ -15,4 +15,6 @@
 #define gpio_HAVE_FIXED_SOFTC 1
 #define gpio_INIT_FIXED_SOFTC { .gp_iop = 0x23, .gp_maxpin = 23 }
 
+#define NTASK       1
+
 #endif
