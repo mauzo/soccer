@@ -1,14 +1,16 @@
 #ifndef __xprintf_h
 #define __xprintf_h
 
+#include <sys/cdefs.h>
 #include <sys/types.h>
 
-#define _S(_s)  (const byte *)(_s), sizeof(_s)
+#define xprintf(_f, ...)    _xprintf(_F(_f), __VA_ARGS__)
+#define print(_s)           _print(_F(_s), sizeof(_s))
 
 __BEGIN_DECLS
 
-void    xprintf     (const char *fmt, ...);
-void    print       (const char *s);
+void    _xprintf    (_FLASH char *fmt, ...);
+void    _print      (_FLASH char *s, size_t sz);
 
 __END_DECLS
 

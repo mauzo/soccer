@@ -10,10 +10,10 @@
 #include <sys/dev.h>
 
 void
-panic (const char *msg)
+_panic (_FLASH char *msg, size_t sz)
 {
-    write(0, (const byte *)"\r\nPANIC!\r\n", 10, F_WAIT);
-    write(0, (const byte *)msg, strlen(msg), F_WAIT|F_SYNC);
+    write(0, (const byte *)_F("\r\nPANIC!\r\n"), 10, F_FLASH|F_WAIT);
+    write(0, (const byte *)msg, sz, F_FLASH|F_WAIT|F_SYNC);
 
     exit(255);
 }

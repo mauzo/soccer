@@ -5,14 +5,16 @@
 
 #include <sys/dev.h>
 
+#include <avr/pgmspace.h>
+
 #define END(_b) ((_b) + sizeof(_b))
 
 static _FLASH char digits[16] = "0123456789abcdef";
 
 static void
-do_write (const char *buf, size_t len)
+do_write (const char *buf, size_t len, byte flags)
 {
-    write(DEV_tty0, (const byte *)buf, len, F_WAIT);
+    write(0, (const byte *)buf, len, flags|F_WAIT);
 }
 
 static char *
@@ -40,11 +42,12 @@ fmt_i (char *buf, int i)
 }
 
 void
-xprintf (const char *f, ...)
+_xprintf (_FLASH char *f, ...)
 {
     va_list     ap;
-    const char  *p, *mark;
+    _FLASH char *p, *mark;
     char        buf[6];
+    char        *b;
 
     va_start(ap, f);
 
@@ -58,7 +61,7 @@ xprintf (const char *f, ...)
 
         /* Write out a constant section */
         if (p != mark)
-            do_write(mark, p - mark);
+            do_write(mark, p - mark, F_FLASH);
 
         /* We've finished */
         if (*p == '\0')
@@ -73,35 +76,40 @@ xprintf (const char *f, ...)
 
         case '%':
             buf[0]  = '%';
-            do_write(buf, 1);
+            do_write(buf, 1, 0);
             break;
 
         case 's':
-            mark    = va_arg(ap, char *);
-            do_write(mark, strlen(mark));
+            b   = va_arg(ap, char *);
+            do_write(b, strlen(b), 0);
+            break;
+
+        case 'S':
+            mark    = va_arg(ap, _FLASH char *);
+            do_write(mark, strlen_P(mark), F_FLASH);
             break;
 
         /* (u)char is promoted to int */
         case 'c':
         case 'd':
-            mark    = fmt_i(END(buf), va_arg(ap, int));
-            do_write(mark, END(buf) - mark);
+            b       = fmt_i(END(buf), va_arg(ap, int));
+            do_write(b, END(buf) - b, 0);
             break;
 
         case 'u':
-            mark    = fmt_u(END(buf), va_arg(ap, unsigned int), 10);
-            do_write(mark, END(buf) - mark);
+            b       = fmt_u(END(buf), va_arg(ap, unsigned int), 10);
+            do_write(b, END(buf) - b, 0);
             break;
 
         case 'x':
-            mark    = fmt_u(END(buf), va_arg(ap, unsigned int), 16);
-            do_write(mark, END(buf) - mark);
+            b       = fmt_u(END(buf), va_arg(ap, unsigned int), 16);
+            do_write(b, END(buf) - b, 0);
             break;
 
         default:
             buf[0] = '%';
             buf[1] = *p;
-            do_write(buf, 2);
+            do_write(buf, 2, 0);
             break;
         }
 
@@ -113,8 +121,8 @@ xprintf (const char *f, ...)
 }
 
 void
-print (const char *s)
+_print (_FLASH char *s, size_t sz)
 {
-    do_write(s, strlen(s));
+    do_write(s, sz, F_FLASH);
 }
 

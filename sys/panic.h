@@ -6,6 +6,14 @@
 #ifndef __sys_panic_h
 #define __sys_panic_h
 
-void panic (const char *msg) _DEAD;
+#include <sys/cdefs.h>
+
+#define panic(_m)   _panic(_F(_m), sizeof(_m))
+
+__BEGIN_DECLS
+
+void _panic (_FLASH char *msg, size_t sz) _DEAD;
+
+__END_DECLS
 
 #endif

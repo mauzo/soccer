@@ -20,4 +20,9 @@
 
 #define lengthof(x) (sizeof(x)/sizeof(*(x)))
 
+#define _F(_s)  ({ \
+    static _FLASH char __s_F[] = "" _s; \
+    &__s_F[0];\
+})
+
 #endif

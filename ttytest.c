@@ -12,8 +12,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#define _S(_s) (const byte *)(_s), sizeof(_s)-1
-
 enum {
     ST_SETUP    = 0,
     ST_PRINT,
