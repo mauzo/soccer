@@ -5,9 +5,11 @@
 #include <xprintf.h>
 
 task_run_t  ttytest_run;
+task_run_t  gpiotest_run;
 
 task_t Tasks[NTASK] = {
     { .tsk_run  = ttytest_run, },
+    { .tsk_run  = gpiotest_run, },
 };
 
 int

@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/dev.h>
 #include <sys/gpio.h>
+#include <sys/panic.h>
+#include <sys/task.h>
 #include <sys/tty.h>
 
 #include <arduino/uno.h>
@@ -50,29 +52,44 @@ setup (void)
     setup_gpio();
 }
 
-int
-main (void)
+static void
+loop (void)
 {
     struct gpio_req     gpreq = { 0 };
 
-    setup();
+    gpreq.gp_pin    = PIN_SWITCH;
+    gpreq.gp_value  = GPIO_PIN_HIGH;
 
-    while (1) {
-        gpreq.gp_pin    = PIN_SWITCH;
-        gpreq.gp_value  = GPIO_PIN_HIGH;
+    while (gpreq.gp_value == GPIO_PIN_HIGH)
+        ioctl(DEV_gpio0, GPIOGET, &gpreq);
 
-        while (gpreq.gp_value == GPIO_PIN_HIGH)
-            ioctl(DEV_gpio0, GPIOGET, &gpreq);
+    print("Button pressed!\n");
 
-        print("Button pressed!\n");
+    gpreq.gp_pin    = PIN_LIGHT;
+    ioctl(DEV_gpio0, GPIOTOGGLE, &gpreq);
 
-        gpreq.gp_pin    = PIN_LIGHT;
-        ioctl(DEV_gpio0, GPIOTOGGLE, &gpreq);
+    gpreq.gp_pin    = PIN_SWITCH;
+    while (gpreq.gp_value == GPIO_PIN_LOW)
+        ioctl(DEV_gpio0, GPIOGET, &gpreq);
+}
 
-        gpreq.gp_pin    = PIN_SWITCH;
-        while (gpreq.gp_value == GPIO_PIN_LOW)
-            ioctl(DEV_gpio0, GPIOGET, &gpreq);
+enum {
+    ST_START    = 0,
+    ST_LOOP,
+};
+
+wchan_t
+gpiotest_run (byte next)
+{
+    switch (next) {
+    case ST_START:
+        setup();
+        return (wchan_t){ .wc_next = ST_LOOP };
+
+    case ST_LOOP:
+        loop();
+        return (wchan_t){ .wc_next = ST_LOOP };
     }
 
-    write(DEV_tty0, _S("Finished.\n"), F_WAIT|F_SYNC);
+    panic("Nothing to do!");
 }
