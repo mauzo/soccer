@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <sys/dev.h>
 #include <sys/console.h>
-#include <sys/panic.h>
 
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -20,6 +19,12 @@ void
 cons_write (const char *msg, size_t sz, byte flags)
 {
     write(0, (const byte *)msg, sz, flags|F_WAIT);
+}
+
+void
+_print (_FLASH char *s, size_t sz)
+{
+    cons_write(s, sz, F_FLASH);
 }
 
 void

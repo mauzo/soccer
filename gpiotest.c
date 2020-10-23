@@ -2,19 +2,13 @@
  * gpiotest
  */
 
-#include <xprintf.h>
-
 #include <sys/types.h>
 #include <sys/console.h>
 #include <sys/dev.h>
 #include <sys/gpio.h>
 #include <sys/task.h>
-#include <sys/tty.h>
 
 #include <arduino/uno.h>
-
-#include <avr/interrupt.h>
-#include <util/delay.h>
 
 #define PIN_LIGHT   GPIO_LED_BUILTIN
 #define PIN_SWITCH  GPIO_PIN_2
@@ -31,25 +25,6 @@ setup_gpio (void)
     gppin.gp_pin    = PIN_SWITCH;
     gppin.gp_flags  = GPIO_PIN_INPUT|GPIO_PIN_PULLUP;
     ioctl(DEV_gpio0, GPIOSETCONFIG, &gppin);
-}
-
-static void _UNUSED
-setup_tty (void)
-{
-    open(DEV_tty0, DEV_WRITING);
-    ioctl(DEV_tty0, TIOCSETBAUD, 9600);
-    ioctl(DEV_tty0, TIOCSETMODE, CS8);
-
-    sei();
-    _delay_ms(1000);
-    print("Starting...\n");
-}
-
-static void
-setup (void)
-{
-    //setup_tty();
-    setup_gpio();
 }
 
 static bool
@@ -82,7 +57,7 @@ gpiotest_run (byte next)
 {
     switch (next) {
     case ST_START:
-        setup();
+        setup_gpio();
         return yield(ST_WAIT_PRESS);
 
     case ST_WAIT_PRESS:
@@ -97,7 +72,6 @@ gpiotest_run (byte next)
         if (check_switch())
             return yield(ST_WAIT_RELEASE);
         else
-            panic("Button released");
             return yield(ST_WAIT_PRESS);
     }
 

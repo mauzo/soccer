@@ -115,9 +115,3 @@ _xprintf (_FLASH char *f, ...)
     va_end(ap);
 }
 
-void
-_print (_FLASH char *s, size_t sz)
-{
-    cons_write(s, sz, F_FLASH);
-}
-
