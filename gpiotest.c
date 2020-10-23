@@ -40,7 +40,7 @@ setup_tty (void)
 
     sei();
     _delay_ms(1000);
-    print("Starting...\r\n");
+    print("Starting...\n");
 }
 
 static void
@@ -64,7 +64,7 @@ main (void)
         while (gpreq.gp_value == GPIO_PIN_HIGH)
             ioctl(DEV_gpio0, GPIOGET, &gpreq);
 
-        print("Button pressed!\r\n");
+        print("Button pressed!\n");
 
         gpreq.gp_pin    = PIN_LIGHT;
         ioctl(DEV_gpio0, GPIOTOGGLE, &gpreq);
@@ -74,5 +74,5 @@ main (void)
             ioctl(DEV_gpio0, GPIOGET, &gpreq);
     }
 
-    write(DEV_tty0, _S("Finished.\r\n"), F_WAIT|F_SYNC);
+    write(DEV_tty0, _S("Finished.\n"), F_WAIT|F_SYNC);
 }

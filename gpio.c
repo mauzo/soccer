@@ -21,29 +21,29 @@ gpio_set_config (device_t *d, byte n, byte flags)
     byte    bit = GPIO_BIT(d, n);
 
     if (flags & GPIO_PIN_INPUT) {
-        xprintf("Setting pin %d to input.\r\n", n);
+        xprintf("Setting pin %d to input.\n", n);
         GPIO_DDR(d, n)  &= ~bit;
 
         if (flags & GPIO_PIN_PULLUP) {
-            xprintf("Setting pin %d to pullup.\r\n", n);
+            xprintf("Setting pin %d to pullup.\n", n);
             GPIO_PORT(d, n) |= bit;
         }
         else {
-            xprintf("Setting pin %d to no-pullup.\r\n", n);
+            xprintf("Setting pin %d to no-pullup.\n", n);
             GPIO_PORT(d, n) &= ~bit;
         }
     }
     else if (flags & GPIO_PIN_OUTPUT) {
         if (flags & GPIO_PIN_PRESET_LOW) {
-            xprintf("Setting pin %d to low.\r\n", n);
+            xprintf("Setting pin %d to low.\n", n);
             GPIO_PORT(d, n) &= ~bit;
         }
         else if (flags & GPIO_PIN_PRESET_HIGH) {
-            xprintf("Setting pin %d to high.\r\n", n);
+            xprintf("Setting pin %d to high.\n", n);
             GPIO_PORT(d, n) |= bit;
         }
 
-        xprintf("Setting pin %d to output.\r\n", n);
+        xprintf("Setting pin %d to output.\n", n);
         GPIO_DDR(d, n)  |= bit;
     }
 }
