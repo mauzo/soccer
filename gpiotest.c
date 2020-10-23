@@ -33,7 +33,7 @@ setup_gpio (void)
     ioctl(DEV_gpio0, GPIOSETCONFIG, &gppin);
 }
 
-static void
+static void _UNUSED
 setup_tty (void)
 {
     open(DEV_tty0, DEV_WRITING);
@@ -48,35 +48,34 @@ setup_tty (void)
 static void
 setup (void)
 {
-    setup_tty();
+    //setup_tty();
     setup_gpio();
 }
 
-static void
-loop (void)
+static bool
+check_switch ()
 {
-    struct gpio_req     gpreq = { 0 };
+    struct gpio_req     gpreq   = { .gp_pin = PIN_SWITCH };
 
-    gpreq.gp_pin    = PIN_SWITCH;
-    gpreq.gp_value  = GPIO_PIN_HIGH;
+    ioctl(DEV_gpio0, GPIOGET, &gpreq);
 
-    while (gpreq.gp_value == GPIO_PIN_HIGH)
-        ioctl(DEV_gpio0, GPIOGET, &gpreq);
+    return (gpreq.gp_value == GPIO_PIN_LOW);
+}
 
-    print("Button pressed!\n");
+static void
+toggle_light ()
+{
+    struct gpio_req     gpreq   = { .gp_pin = PIN_LIGHT };
 
-    gpreq.gp_pin    = PIN_LIGHT;
     ioctl(DEV_gpio0, GPIOTOGGLE, &gpreq);
-
-    gpreq.gp_pin    = PIN_SWITCH;
-    while (gpreq.gp_value == GPIO_PIN_LOW)
-        ioctl(DEV_gpio0, GPIOGET, &gpreq);
 }
 
 enum {
     ST_START    = 0,
-    ST_LOOP,
+    ST_WAIT_PRESS,
+    ST_WAIT_RELEASE,
 };
+
 
 wchan_t
 gpiotest_run (byte next)
@@ -84,11 +83,21 @@ gpiotest_run (byte next)
     switch (next) {
     case ST_START:
         setup();
-        return (wchan_t){ .wc_next = ST_LOOP };
+        return yield(ST_WAIT_PRESS);
 
-    case ST_LOOP:
-        loop();
-        return (wchan_t){ .wc_next = ST_LOOP };
+    case ST_WAIT_PRESS:
+        if (!check_switch())
+            return yield(ST_WAIT_PRESS);
+        
+        print("Button pressed!\n");
+        toggle_light();
+        return yield(ST_WAIT_RELEASE);
+
+    case ST_WAIT_RELEASE:
+        if (check_switch())
+            return yield(ST_WAIT_RELEASE);
+        else
+            return yield(ST_WAIT_PRESS);
     }
 
     panic("Nothing to do!");

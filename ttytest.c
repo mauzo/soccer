@@ -16,7 +16,8 @@
 
 enum {
     ST_SETUP    = 0,
-    ST_LOOP,
+    ST_PRINT,
+    ST_WAIT,
 };
 
 static iovec_t msgs[] = {
@@ -25,7 +26,9 @@ static iovec_t msgs[] = {
     str2iovf("Goodbye..."),
 };
 
-static void
+static uint32_t timer_cnt   = 0;
+
+static wchan_t
 setup (void)
 {
     open(DEV_tty0, DEV_WRITING);
@@ -35,32 +38,46 @@ setup (void)
     sei();
 
     write(DEV_tty0, (byte *)"Starting\n", 9, F_WAIT);
+
+    return yield(ST_PRINT);
 }
 
-static void
-loop (void)
+static wchan_t
+print_msgs (void)
 {
     byte    i;
 
     for (i = 0; i < lengthof(msgs); i++) {
         write(DEV_tty0, msgs[i].iov_base, msgs[i].iov_len, F_WAIT|F_FLASH);
         write(DEV_tty0, (byte *)"\n", 1, F_WAIT);
-        _delay_ms(500);
     }
-    _delay_ms(1000);
+
+    timer_cnt = SECS_PER_CYCLE * 2;
+    return yield(ST_WAIT);
 }
 
+static wchan_t
+wait_until_msgs (void)
+{
+    timer_cnt--;
+
+    if (timer_cnt)
+        return yield(ST_WAIT);
+    else
+        return yield(ST_PRINT);
+}
+    
 wchan_t
 ttytest_run (byte next)
 {
     switch (next) {
     case ST_SETUP:
-        setup();
-        return (wchan_t){ .wc_next = ST_LOOP };
-    case ST_LOOP:
-        loop();
-        return (wchan_t){ .wc_next = ST_LOOP };
-    default:
-        panic("ttytest: bad state");
+        return setup();
+    case ST_PRINT:
+        return print_msgs();
+    case ST_WAIT:
+        return wait_until_msgs();
     }
+
+    panic("ttytest: nothing to do!");
 }

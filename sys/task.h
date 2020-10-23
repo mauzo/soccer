@@ -36,4 +36,18 @@ enum wchan_type {
 
 extern task_t Tasks[NTASK];
 
+static inline wchan_t
+yield (byte next) { 
+    return (wchan_t){ .wc_next = next }; 
+}
+
+static inline wchan_t
+wait (byte type, uint16_t detail, byte next) {
+    return (wchan_t){
+        .wc_next    = next,
+        .wc_type    = type,
+        .wc_detail  = detail,
+    };
+}
+
 #endif

@@ -17,4 +17,6 @@
 
 #define NTASK       2
 
+#define SECS_PER_CYCLE  (F_CPU / 320)
+
 #endif

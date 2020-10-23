@@ -26,7 +26,7 @@ main (void)
             
             switch (w->wc_type) {
             case W_RUN:
-                xprintf("Running task %u with %u\n", i, w->wc_next);
+                //xprintf("Running task %u with %u\n", i, w->wc_next);
                 *w  = t->tsk_run(w->wc_next);
                 break;
 
