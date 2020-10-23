@@ -18,7 +18,7 @@ enum {
     ST_WAIT,
 };
 
-static iovec_t msgs[] = {
+static _FLASH iovec_t msgs[] = {
     str2iovf("Hello world!"),
     str2iovf("foobar"),
     str2iovf("Goodbye..."),
@@ -35,7 +35,7 @@ setup (void)
     _delay_ms(2000);
     sei();
 
-    write(DEV_tty0, (byte *)"Starting\n", 9, F_WAIT);
+    print("Starting\n");
 
     return yield(ST_PRINT);
 }
