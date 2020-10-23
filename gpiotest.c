@@ -5,9 +5,9 @@
 #include <xprintf.h>
 
 #include <sys/types.h>
+#include <sys/console.h>
 #include <sys/dev.h>
 #include <sys/gpio.h>
-#include <sys/panic.h>
 #include <sys/task.h>
 #include <sys/tty.h>
 
@@ -97,6 +97,7 @@ gpiotest_run (byte next)
         if (check_switch())
             return yield(ST_WAIT_RELEASE);
         else
+            panic("Button released");
             return yield(ST_WAIT_PRESS);
     }
 

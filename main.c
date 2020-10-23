@@ -1,6 +1,6 @@
 #include <sys/config.h>
+#include <sys/console.h>
 #include <sys/task.h>
-#include <sys/panic.h>
 
 #include <xprintf.h>
 

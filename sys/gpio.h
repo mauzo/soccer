@@ -7,7 +7,7 @@
 
 #include <sys/types.h>
 #include <sys/config.h>
-#include <sys/panic.h>
+#include <sys/console.h>
 
 #include <avr/io.h>
 

@@ -3,9 +3,9 @@
  */
 
 #include <sys/types.h>
+#include <sys/console.h>
 #include <sys/uio.h>
 #include <sys/dev.h>
-#include <sys/panic.h>
 #include <sys/task.h>
 #include <sys/tty.h>
 
