@@ -9,7 +9,7 @@
 #include <sys/dev.h>
 #include <sys/gpio.h>
 
-static void gpio_ioctl (device_t *d, ioc_t r, iocp_t p);
+static errno_t gpio_ioctl (device_t *d, ioc_t r, iocp_t p);
 
 devsw_t gpio_devsw = {
     sw_ioctl:   gpio_ioctl,
@@ -48,7 +48,7 @@ gpio_set_config (device_t *d, byte n, byte flags)
     }
 }
 
-static void
+static errno_t
 gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
 {
     gpio_softc_t    *sc     = gpio_softc(d);
@@ -93,4 +93,6 @@ gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
         GPIO_PIN(d, n) |= GPIO_BIT(d, n);
         break;
     }
+
+    return 0;
 }

@@ -11,9 +11,9 @@
 
 #include <avr/interrupt.h>
 
-static void usart_ioctl     (device_t *c, ioc_t r, iocp_t p);
-static void usart_open      (device_t *c, byte mode);
-static void usart_write     (device_t *c);
+static errno_t usart_ioctl     (device_t *c, ioc_t r, iocp_t p);
+static errno_t usart_open      (device_t *c, byte mode);
+static errno_t usart_write     (device_t *c);
 
 devsw_t usart_devsw = {
     sw_open:    usart_open,
@@ -21,15 +21,17 @@ devsw_t usart_devsw = {
     sw_write:   usart_write,
 };
 
-static void
+static errno_t
 usart_open (device_t *d, byte mode)
 {
     if (mode & DEV_WRITING)
         USART_CSRB(d)   |= USART_ENABLE_TX;
+
+    return 0;
 }
 
 /* XXX no error checking */
-static void
+static errno_t
 usart_ioctl (device_t *d, ioc_t r, iocp_t p)
 {
     int         i;
@@ -63,12 +65,15 @@ usart_ioctl (device_t *d, ioc_t r, iocp_t p)
         USART_CSRC(d)   = b;
         break;
     }
+
+    return 0;
 }
 
-static void
+static errno_t
 usart_write (device_t *d)
 {
     USART_CSRB(d)   |= USART_ENABLE_DRE;
+    return 0;
 }
 
 /* This ISR must either set UDR or disable itself. Otherwise it will

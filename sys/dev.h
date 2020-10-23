@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/config.h>
+#include <sys/errno.h>
 #include <sys/uio.h>
 
 struct cdev;
@@ -34,10 +35,10 @@ struct cdev_rw {
  * may not be implemented by some devices.
  */
 struct devsw {
-    void    (*sw_open)  (device_t *d, byte mode);
-    void    (*sw_ioctl) (device_t *d, ioc_t r, iocp_t p);
-    void    (*sw_read)  (device_t *d);
-    void    (*sw_write) (device_t *d);
+    errno_t (*sw_open)  (device_t *d, byte mode);
+    errno_t (*sw_ioctl) (device_t *d, ioc_t r, iocp_t p);
+    errno_t (*sw_read)  (device_t *d);
+    errno_t (*sw_write) (device_t *d);
 };
 
 /* The softc lives in flash and holds the device-specific configuration
@@ -131,11 +132,11 @@ _MACRO void cdev_set_flag (struct cdev *c, byte f)
 _MACRO void cdev_clr_flag (struct cdev *c, byte f)
     {   c->cd_flags &= ~f; }
 
-void    ioctl   (dev_t d, ioc_t r, iocp_t p);
-void    open    (dev_t d, byte mode);
+errno_t ioctl   (dev_t d, ioc_t r, iocp_t p);
+errno_t open    (dev_t d, byte mode);
 bool    poll    (dev_t d, byte mode);
-void    read    (dev_t d, byte *b, size_t l, byte f);
-void    write   (dev_t d, const byte *b, size_t l, byte f);
+errno_t read    (dev_t d, byte *b, size_t l, byte f);
+errno_t write   (dev_t d, const byte *b, size_t l, byte f);
 
 __END_DECLS
 
