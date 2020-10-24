@@ -36,7 +36,6 @@ struct cdev_rw {
  */
 struct devsw {
     errno_t (*sw_open)  (device_t *d, byte mode);
-    errno_t (*sw_ioctl) (device_t *d, ioc_t r, iocp_t p);
     errno_t (*sw_read)  (device_t *d);
     errno_t (*sw_write) (device_t *d);
 };
@@ -132,7 +131,6 @@ _MACRO void cdev_set_flag (struct cdev *c, byte f)
 _MACRO void cdev_clr_flag (struct cdev *c, byte f)
     {   c->cd_flags &= ~f; }
 
-errno_t ioctl   (dev_t d, ioc_t r, iocp_t p);
 errno_t open    (dev_t d, byte mode);
 bool    poll    (dev_t d, byte mode);
 errno_t read    (dev_t d, byte *b, size_t l, byte f);

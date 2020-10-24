@@ -38,6 +38,8 @@ _MACRO byte usart_iop (device_t *d) { return usart_softc(d)->us_iop; }
 
 __BEGIN_DECLS
 
+errno_t usart_setbaud   (dev_t d, uint16_t spd);
+errno_t usart_setmode   (dev_t d, byte mode);
 void    usart_isr_udre  (device_t *dev);
 
 __END_DECLS

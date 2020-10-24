@@ -26,21 +26,6 @@ get_devsw (dev_t d, device_t **dev, devsw_t **dsw)
 }
 
 errno_t
-ioctl (dev_t d, ioc_t r, iocp_t p)
-{
-    device_t    *dev;
-    devsw_t     *dsw;
-    errno_t     err;
-
-    if ((err = get_devsw(d, &dev, &dsw)))
-        return err;
-    if (!dsw->sw_ioctl)
-        return ENODEV;
-
-    return dsw->sw_ioctl(dev, r, p);
-}
-
-errno_t
 open (dev_t d, byte mode)
 {
     device_t    *dev;

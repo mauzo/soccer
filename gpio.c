@@ -9,90 +9,64 @@
 #include <sys/dev.h>
 #include <sys/gpio.h>
 
-static errno_t gpio_ioctl (device_t *d, ioc_t r, iocp_t p);
-
-devsw_t gpio_devsw = {
-    sw_ioctl:   gpio_ioctl,
-};
-
-static void
-gpio_set_config (device_t *d, byte n, byte flags)
-{
-    byte    bit = GPIO_BIT(d, n);
-
-    if (flags & GPIO_PIN_INPUT) {
-        xprintf("Setting pin %d to input.\n", n);
-        GPIO_DDR(d, n)  &= ~bit;
-
-        if (flags & GPIO_PIN_PULLUP) {
-            xprintf("Setting pin %d to pullup.\n", n);
-            GPIO_PORT(d, n) |= bit;
-        }
-        else {
-            xprintf("Setting pin %d to no-pullup.\n", n);
-            GPIO_PORT(d, n) &= ~bit;
-        }
-    }
-    else if (flags & GPIO_PIN_OUTPUT) {
-        if (flags & GPIO_PIN_PRESET_LOW) {
-            xprintf("Setting pin %d to low.\n", n);
-            GPIO_PORT(d, n) &= ~bit;
-        }
-        else if (flags & GPIO_PIN_PRESET_HIGH) {
-            xprintf("Setting pin %d to high.\n", n);
-            GPIO_PORT(d, n) |= bit;
-        }
-
-        xprintf("Setting pin %d to output.\n", n);
-        GPIO_DDR(d, n)  |= bit;
-    }
-}
+devsw_t gpio_devsw = { 0 };
 
 static errno_t
-gpio_ioctl (device_t *d, ioc_t r, iocp_t p)
+get_softc (dev_t d, gpio_softc_t **sc)
 {
-    gpio_softc_t    *sc     = gpio_softc(d);
-    byte            n, bit;
-    struct gpio_pin *pin;
-    struct gpio_req *req;
+    device_t    *dev;
 
-    switch (r) {
-    case GPIOMAXPIN:
-        *(byte *)p.iop_ptr = sc->gp_maxpin;
-        break;
+    if (d > NDEV)
+        return ENXIO;
+    
+    dev     = devnum2dev(d);
+    *sc     = gpio_softc(dev);
+    return 0;
+}
 
-    case GPIOSETCONFIG:
-        pin = p.iop_ptr;
-        gpio_set_config(d, pin->gp_pin, pin->gp_flags);
-        break;
+gpio_pin_t
+gpio_pin_max (dev_t d)
+{
+    gpio_softc_t    *sc;
+    errno_t         err;
 
-    case GPIOGET:
-        req = p.iop_ptr;
-        n   = req->gp_pin;
-        bit = GPIO_BIT(d, n);
+    if ((err = get_softc(d, &sc))) return err;
+    return sc->gp_maxpin;
+}
 
-        req->gp_value   = (GPIO_PIN(d, n) & bit) ? 1 : 0;
-
-        break;
-
-    case GPIOSET:
-        req = p.iop_ptr;
-        n   = req->gp_pin;
-        bit = GPIO_BIT(d, n);
-
-        if (req->gp_value)
-            GPIO_PORT(d, n) |= bit;
+errno_t
+gpio_pin_set_flag (dev_t d, gpio_pin_t n, gpio_flag_t flags)
+{
+    if (flags & GPIO_PIN_INPUT) {
+        if (flags & GPIO_PIN_PULLUP)
+            gpio_pin_pullup(d, n);
         else
-            GPIO_PORT(d, n) &= ~bit;
+            gpio_pin_input(d, n);
+    }
+    else if (flags & GPIO_PIN_OUTPUT) {
+        if (flags & GPIO_PIN_PRESET_LOW)
+            gpio_pin_low(d, n);
+        else if (flags & GPIO_PIN_PRESET_HIGH)
+            gpio_pin_high(d, n);
 
-        break;
-
-    case GPIOTOGGLE:
-        req = p.iop_ptr;
-        n   = req->gp_pin;
-        GPIO_PIN(d, n) |= GPIO_BIT(d, n);
-        break;
+        gpio_pin_output(d, n);
     }
 
     return 0;
 }
+
+errno_t
+gpio_pin_set (dev_t d, gpio_pin_t n, gpio_value_t v)
+{
+    switch (v) {
+    case GPIO_PIN_HIGH:
+        gpio_pin_high(d, n);
+        return 0;
+    case GPIO_PIN_LOW:
+        gpio_pin_low(d, n);
+        return 0;
+    default:
+        return EINVAL;
+    }
+}
+

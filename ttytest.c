@@ -8,6 +8,7 @@
 #include <sys/dev.h>
 #include <sys/task.h>
 #include <sys/tty.h>
+#include <sys/usart.h>
 
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -30,8 +31,8 @@ static wchan_t
 setup (void)
 {
     open(DEV_tty0, DEV_WRITING);
-    ioctl(DEV_tty0, TIOCSETBAUD, 9600);
-    ioctl(DEV_tty0, TIOCSETMODE, CS8);
+    usart_setbaud(DEV_tty0, 9600);
+    usart_setmode(DEV_tty0, CS8);
     _delay_ms(2000);
     sei();
 

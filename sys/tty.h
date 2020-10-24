@@ -1,16 +1,11 @@
 /*
- * sys/tty.h: TTY ioctls.
+ * sys/tty.h: tty interface.
  */
 
 #ifndef __sys_tty_h
 #define __sys_tty_h
 
-#define TIOCGETBAUD     1       /* get baud rate */
-#define TIOCSETBAUD     2       /* set baud rate */
-#define TIOCGETMODE     3       /* get mode (bits/stop/&c) */
-#define TIOCSETMODE     4       /* set mode (bits/stop/&c) */
-
-/* Bits for TIOC[GS]ETMODE */
+/* Bits for tty_[gs]etmode */
 #define CS5         0x0     /* 5 data bits */
 #define CS6         0x1     /* 6 data bits */
 #define CS7         0x2     /* 7 data bits */

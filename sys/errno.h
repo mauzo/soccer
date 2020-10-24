@@ -7,5 +7,6 @@ typedef int errno_t;
 #define EBADF       (-1)    /* device not open */
 #define ENXIO       (-2)    /* device does not exist */
 #define ENODEV      (-3)    /* operation not supported by device */
+#define EINVAL      (-4)    /* invalid parameters */
 
 #endif

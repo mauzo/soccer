@@ -16,33 +16,20 @@
 static void
 setup_gpio (void)
 {
-    struct gpio_pin     gppin = { 0 };
-
-    gppin.gp_pin    = PIN_LIGHT;
-    gppin.gp_flags  = GPIO_PIN_OUTPUT|GPIO_PIN_PRESET_LOW;
-    ioctl(DEV_gpio0, GPIOSETCONFIG, &gppin);
-
-    gppin.gp_pin    = PIN_SWITCH;
-    gppin.gp_flags  = GPIO_PIN_INPUT|GPIO_PIN_PULLUP;
-    ioctl(DEV_gpio0, GPIOSETCONFIG, &gppin);
+    gpio_pin_output(DEV_gpio0, PIN_LIGHT);
+    gpio_pin_pullup(DEV_gpio0, PIN_SWITCH);
 }
 
 static bool
 check_switch ()
 {
-    struct gpio_req     gpreq   = { .gp_pin = PIN_SWITCH };
-
-    ioctl(DEV_gpio0, GPIOGET, &gpreq);
-
-    return (gpreq.gp_value == GPIO_PIN_LOW);
+    return gpio_pin_get(DEV_gpio0, PIN_SWITCH) == GPIO_PIN_LOW;
 }
 
 static void
 toggle_light ()
 {
-    struct gpio_req     gpreq   = { .gp_pin = PIN_LIGHT };
-
-    ioctl(DEV_gpio0, GPIOTOGGLE, &gpreq);
+    gpio_pin_toggle(DEV_gpio0, PIN_LIGHT);
 }
 
 enum {
