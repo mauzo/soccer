@@ -13,11 +13,12 @@ mk_usart=	y
 SRCS.${mk_gpio}+=	gpio.c
 SRCS.${mk_usart}+=	usart.c
 
-TTY_SPEED=	9600
+TTY_SPEED=	10
 
 CFLAGS+=	-Os -ffunction-sections -fdata-sections -std=gnu99
 CFLAGS+=	-Werror -Wall -Wno-parentheses -Wno-error=unused-function
 CFLAGS+=	-I${.CURDIR}
+CFLAGS+=	-DTTY_SPEED=${TTY_SPEED}
 
 LDFLAGS+=	-Os -Wl,--gc-sections
 

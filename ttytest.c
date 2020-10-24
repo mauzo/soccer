@@ -31,7 +31,7 @@ static wchan_t
 setup (void)
 {
     open(DEV_tty0, DEV_WRITING);
-    usart_setbaud(DEV_tty0, 9600);
+    usart_setbaud(DEV_tty0, TTY_SPEED);
     usart_setmode(DEV_tty0, CS8);
     _delay_ms(2000);
     sei();
