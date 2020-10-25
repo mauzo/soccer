@@ -12,13 +12,11 @@ static struct usart_cdev    tty0_cdev = { };
 
 device_t Devices[NDEV] = {
     {   /* tty0 */
-        d_devsw:    &usart_devsw,
-        d_cdev:     (cdev_t *)&tty0_cdev,
-        d_inplace:  { 0xC0, 0x00 },
+        .d_devsw    = &usart_devsw,
+        .d_cdev     = (cdev_t *)&tty0_cdev,
     },
     {   /* gpio0 */
-        d_devsw:    &gpio_devsw,
-        d_inplace:  { 0x23, 23 },
+        .d_devsw    = &gpio_devsw,
     },
 };
 

@@ -4,7 +4,8 @@
 PROG=	gpiotest
 
 SRCS+=	gpiotest.c ttytest.c
-SRCS+=	console.c devices.c devops.c xprintf.c main.c
+SRCS+=	console.c devops.c xprintf.c main.c
+SRCS+=	devices.c tasks.c
 SRCS+=	${SRCS.y}
 
 mk_gpio=	y
