@@ -8,5 +8,6 @@ typedef int errno_t;
 #define ENXIO       (-2)    /* device does not exist */
 #define ENODEV      (-3)    /* operation not supported by device */
 #define EINVAL      (-4)    /* invalid parameters */
+#define ESRCH       (-5)    /* process not found */
 
 #endif

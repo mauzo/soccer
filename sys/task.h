@@ -4,10 +4,12 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 #include <sys/config.h>
+#include <sys/errno.h>
 
 struct task;
 struct wchan;
 
+typedef byte            tid_t;
 typedef struct task     task_t;
 typedef struct wchan    wchan_t;
 typedef wchan_t         task_run_t(byte next);
@@ -28,6 +30,7 @@ struct task {
 /* Values for wc_type */
 enum wchan_type {
     W_RUN,      /* Task is runnable now */
+    W_STOPPED,  /* Task is stopped, wake with task_wake */
     W_IRQ,      /* Waiting for an IRQ */
     W_SWI,      /* Waiting for a SWI */
     W_DEV,      /* Waiting for a device */
@@ -36,13 +39,32 @@ enum wchan_type {
 
 extern task_t Tasks[NTASK];
 
-static inline wchan_t
-yield (byte next) { 
+_MACRO task_t *
+tid2task (tid_t t)
+{
+    if (t > NTASK) return NULL;
+    return &Tasks[t];
+}
+
+_MACRO errno_t
+task_wake (tid_t t)
+{
+    task_t  *task   = tid2task(t);
+
+    if (!task) return ESRCH;
+    task->tsk_wchan.wc_type = W_RUN;
+    return 0;
+}
+
+_MACRO wchan_t
+yield (byte next) 
+{
     return (wchan_t){ .wc_next = next }; 
 }
 
-static inline wchan_t
-wait (byte type, uint16_t detail, byte next) {
+_MACRO wchan_t
+wait (byte type, uint16_t detail, byte next)
+{
     return (wchan_t){
         .wc_next    = next,
         .wc_type    = type,
