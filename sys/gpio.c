@@ -3,11 +3,11 @@
  *
  */
 
-#include <xprintf.h>
-
 #include <sys/types.h>
 #include <sys/dev.h>
 #include <sys/gpio.h>
+
+#include <lib/xprintf.h>
 
 devsw_t gpio_devsw = { 0 };
 

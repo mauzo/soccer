@@ -1,10 +1,10 @@
 /* 
- * sys/console.h
+ * lib/console.h
  * Functions for using the console (if defined).
  */
 
-#ifndef _sys_console_h
-#define _sys_console_h
+#ifndef _lib_console_h
+#define _lib_console_h
 
 #include <sys/cdefs.h>
 #include <sys/types.h>

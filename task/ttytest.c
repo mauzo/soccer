@@ -3,7 +3,6 @@
  */
 
 #include <sys/types.h>
-#include <sys/console.h>
 #include <sys/uio.h>
 #include <sys/dev.h>
 #include <sys/task.h>
@@ -12,6 +11,8 @@
 
 #include <avr/interrupt.h>
 #include <util/delay.h>
+
+#include <lib/console.h>
 
 enum {
     ST_SETUP    = 0,

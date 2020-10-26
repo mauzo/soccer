@@ -1,5 +1,5 @@
-#ifndef __xprintf_h
-#define __xprintf_h
+#ifndef _lib_xprintf_h
+#define _lib_xprintf_h
 
 #include <sys/cdefs.h>
 #include <sys/types.h>

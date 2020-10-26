@@ -1,5 +1,5 @@
-#ifndef __sys_dev_h
-#define __sys_dev_h
+#ifndef _sys_dev_h
+#define _sys_dev_h
 
 #include <sys/types.h>
 #include <sys/config.h>

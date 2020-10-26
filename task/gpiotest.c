@@ -3,11 +3,11 @@
  */
 
 #include <sys/types.h>
-#include <sys/console.h>
 #include <sys/dev.h>
 #include <sys/gpio.h>
 #include <sys/task.h>
 
+#include <lib/console.h>
 #include <arduino/uno.h>
 
 #define PIN_LIGHT   GPIO_LED_BUILTIN

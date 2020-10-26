@@ -1,8 +1,8 @@
 #include <sys/config.h>
-#include <sys/console.h>
 #include <sys/task.h>
 
-#include <xprintf.h>
+#include <lib/console.h>
+#include <lib/xprintf.h>
 
 int
 main (void)

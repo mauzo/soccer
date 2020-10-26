@@ -1,12 +1,10 @@
 #include <stdarg.h>
-#include <stdio.h>
 #include <string.h>
-#include <xprintf.h>
 
-#include <sys/console.h>
 #include <sys/dev.h>
-
 #include <avr/pgmspace.h>
+#include <lib/console.h>
+#include <lib/xprintf.h>
 
 #define END(_b) ((_b) + sizeof(_b))
 

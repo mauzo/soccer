@@ -2,8 +2,8 @@
  * sys/tty.h: tty interface.
  */
 
-#ifndef __sys_tty_h
-#define __sys_tty_h
+#ifndef _sys_tty_h
+#define _sys_tty_h
 
 /* Bits for tty_[gs]etmode */
 #define CS5         0x0     /* 5 data bits */

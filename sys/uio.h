@@ -1,9 +1,9 @@
 /*
- * sys/iovec.h: buffer structures.
+ * sys/uio.h: buffer structures.
  */
 
-#ifndef __sys_uio_h
-#define __sys_uio_h
+#ifndef _sys_uio_h
+#define _sys_uio_h
 
 struct iovec {
     void        *iov_base;

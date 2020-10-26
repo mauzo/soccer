@@ -1,13 +1,14 @@
 /*
- * usart.h
+ * sys/usart.h
  * Interface to the USART on AVR ATmega chips.
  *
  */
 
-#ifndef __sys_usart_h
-#define __sys_usart_h
+#ifndef _sys_usart_h
+#define _sys_usart_h
 
 #include <sys/types.h>
+#include <sys/config.h>
 #include <sys/dev.h>
 #include <sys/uio.h>
 

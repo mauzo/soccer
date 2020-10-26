@@ -1,5 +1,5 @@
-#ifndef _task_h
-#define _task_h
+#ifndef _sys_task_h
+#define _sys_task_h
 
 #include <sys/cdefs.h>
 #include <sys/types.h>

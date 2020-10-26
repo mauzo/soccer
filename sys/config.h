@@ -2,8 +2,8 @@
  * sys/config.h: system configuration.
  */
 
-#ifndef __sys_config_h
-#define __sys_config_h
+#ifndef _sys_config_h
+#define _sys_config_h
 
 #define SECS_PER_CYCLE  (F_CPU / 320)
 

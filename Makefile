@@ -3,16 +3,16 @@
 
 PROG=	gpiotest
 
-SRCS+=	gpiotest.c ttytest.c
-SRCS+=	console.c devops.c xprintf.c main.c
-SRCS+=	devices.c tasks.c
+SRCS+=	task/gpiotest.c task/ttytest.c
+SRCS+=  sys/devops.c sys/main.c sys/devices.c sys/tasks.c
+SRCS+=  lib/console.c lib/xprintf.c
 SRCS+=	${SRCS.y}
 
 mk_gpio=	y
 mk_usart=	y
 
-SRCS.${mk_gpio}+=	gpio.c
-SRCS.${mk_usart}+=	usart.c
+SRCS.${mk_gpio}+=	sys/gpio.c
+SRCS.${mk_usart}+=	sys/usart.c
 
 TTY_SPEED=	10
 

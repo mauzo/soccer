@@ -2,16 +2,16 @@
  * sys/gpio.h: definitions for using GPIO pins.
  */
 
-#ifndef __sys_gpio_h
-#define __sys_gpio_h
+#ifndef _sys_gpio_h
+#define _sys_gpio_h
 
 #include <sys/types.h>
 #include <sys/config.h>
-#include <sys/console.h>
 
 #include <avr/io.h>
 
-#include <xprintf.h>
+#include <lib/console.h>
+#include <lib/xprintf.h>
 
 typedef byte    gpio_pin_t;
 typedef byte    gpio_flag_t;

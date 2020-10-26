@@ -2,8 +2,8 @@
  * sys/atomic.h: atomic operations and critical sections.
  */
 
-#ifndef __SYS_ATOMIC_H
-#define __SYS_ATOMIC_H
+#ifndef _sys_atomic_h
+#define _sys_atomic_h
 
 /* Use like this:
  *  CRIT_START {

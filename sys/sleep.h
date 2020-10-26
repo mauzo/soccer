@@ -1,5 +1,5 @@
-#ifndef __sys_sleep_h
-#define __sys_sleep_h
+#ifndef _sys_sleep_h
+#define _sys_sleep_h
 
 #include <avr/interrupt.h>
 #include <avr/sleep.h>

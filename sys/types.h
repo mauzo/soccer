@@ -3,8 +3,8 @@
  * This need to override sys/types.h from avr-libc.
  */
 
-#ifndef __SYS_TYPES_H
-#define __SYS_TYPES_H
+#ifndef _sys_types_h
+#define _sys_types_h
 
 // for now...
 #include <stddef.h>
