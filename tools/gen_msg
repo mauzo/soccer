@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+use 5.012;
+use autodie;
+use warnings;
+
+my @msgs = @ARGV;
+
+print <<HEADER;
+#ifndef _lib_msg_h
+#define _lib_msg_h
+
+#include <lib/xprintf.h>
+
+HEADER
+
+my %typ = (
+    c   => "int",
+    d   => "int",
+    u   => "unsigned int",
+    x   => "unsigned int",
+    s   => "const char *",
+    S   => "_FLASH char *",
+);
+
+for my $f (@msgs) {
+    open my $M, "<", $f;
+    while (<$M>) {
+        my ($nm, $fmt)  = /(\w+)\s+(.*)/;
+        my @pct         = $fmt =~ /%([cduxsS])/g;
+
+        my (@proto, @args);
+        my $n = 1;
+        for (@pct) {
+            push @proto,    "$typ{$_} v$n";
+            push @args,     "v$n";
+        }
+        
+        local $" = ", ";
+        print <<HEADER;
+_MACRO void MSG_$nm (@proto) 
+    { xprintf("$fmt\\n", @args); }
+
+HEADER
+    }
+}
+
+print <<HEADER;
+#endif
+HEADER

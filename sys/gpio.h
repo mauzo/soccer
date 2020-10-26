@@ -11,7 +11,7 @@
 #include <avr/io.h>
 
 #include <lib/console.h>
-#include <lib/xprintf.h>
+#include <lib/msg.h>
 
 typedef byte    gpio_pin_t;
 typedef byte    gpio_flag_t;
@@ -67,7 +67,7 @@ gpio_iop (dev_t d, gpio_pin_t pin)
 _MACRO errno_t
 gpio_pin_input (dev_t d, gpio_pin_t n)
 {
-    xprintf("Setting pin %d to input.\n", n);
+    MSG_gpio_pin_input(n);
     GPIO_DDR(d, n)      &= ~GPIO_BIT(d, n);
     GPIO_PORT(d, n)     &= ~GPIO_BIT(d, n);
     return 0;
@@ -77,7 +77,7 @@ gpio_pin_input (dev_t d, gpio_pin_t n)
 _MACRO errno_t
 gpio_pin_pullup (dev_t d, gpio_pin_t n)
 {
-    xprintf("Setting pin %d to pullup.\n", n);
+    MSG_gpio_pin_pullup(n);
     GPIO_DDR(d, n)      &= ~GPIO_BIT(d, n);
     GPIO_PORT(d, n)     |= GPIO_BIT(d, n);
     return 0;
@@ -86,7 +86,7 @@ gpio_pin_pullup (dev_t d, gpio_pin_t n)
 _MACRO errno_t
 gpio_pin_output (dev_t d, gpio_pin_t n)
 {
-    xprintf("Setting pin %d to output.\n", n);
+    MSG_gpio_pin_output(n);
     GPIO_DDR(d, n)      |= GPIO_BIT(d, n);
     return 0;
 }
