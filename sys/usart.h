@@ -44,8 +44,6 @@ __BEGIN_DECLS
 
 errno_t usart_setbaud   (dev_t d, uint16_t spd);
 errno_t usart_setmode   (dev_t d, byte mode);
-void    usart_isr_udre  (device_t *dev);
-void    usart_isr_rxc   (device_t *dev);
 
 __END_DECLS
 

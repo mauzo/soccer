@@ -5,6 +5,7 @@
 #include <sys/dev.h>
 #include <sys/gpio.h>
 #include <sys/usart.h>
+#include <sys/usart-isr.h>
 
 #include <avr/interrupt.h>
 
@@ -29,4 +30,3 @@ ISR(USART_UDRE_vect)
 {
     usart_isr_udre(devnum2dev(DEV_tty0));
 }
-
