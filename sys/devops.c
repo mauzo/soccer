@@ -87,12 +87,16 @@ read (dev_t d, byte *b, size_t l, byte f)
     if (!dsw->sw_read)
         return ENODEV;
 
-    /* XXX F_WAIT / F_SYNC */
+    if (f & F_WAIT)
+        poll(d, DEV_READING);
 
     CRIT_START {
         err = setup_read(dev, b, l, f);
         if (!err) err = dsw->sw_read(dev);
     } CRIT_END;
+
+    if (f & F_SYNC)
+        poll(d, DEV_READING);
 
     return err;
 }

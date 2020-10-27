@@ -15,7 +15,10 @@
 #include <avr/io.h>
 
 #define USART_ENABLE_TX     (1<<TXEN0)
-#define USART_ENABLE_DRE    (1<<UDRIE0)
+#define USART_ENABLE_RX     (1<<RXEN0)
+#define USART_IRQ_UDRE      (1<<UDRIE0)
+#define USART_IRQ_TXC       (1<<TXCIE0)
+#define USART_IRQ_RXC       (1<<RXCIE0)
 
 struct usart_cdev {
     struct cdev_rw  us_cdev;
@@ -42,6 +45,7 @@ __BEGIN_DECLS
 errno_t usart_setbaud   (dev_t d, uint16_t spd);
 errno_t usart_setmode   (dev_t d, byte mode);
 void    usart_isr_udre  (device_t *dev);
+void    usart_isr_rxc   (device_t *dev);
 
 __END_DECLS
 

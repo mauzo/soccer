@@ -20,6 +20,11 @@ device_t Devices[NDEV] = {
     },
 };
 
+ISR(USART_RX_vect)
+{
+    usart_isr_rxc(devnum2dev(DEV_tty0));
+}
+
 ISR(USART_UDRE_vect)
 {
     usart_isr_udre(devnum2dev(DEV_tty0));

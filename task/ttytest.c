@@ -13,6 +13,7 @@
 #include <util/delay.h>
 
 #include <lib/console.h>
+#include <lib/xprintf.h>
 
 enum {
     ST_SETUP    = 0,
@@ -31,7 +32,7 @@ static uint32_t timer_cnt   = 0;
 static wchan_t
 setup (void)
 {
-    open(DEV_tty0, DEV_WRITING);
+    open(DEV_tty0, DEV_READING|DEV_WRITING);
     usart_setbaud(DEV_tty0, TTY_SPEED);
     usart_setmode(DEV_tty0, CS8);
     _delay_ms(2000);
@@ -46,11 +47,16 @@ static wchan_t
 print_msgs (void)
 {
     byte    i;
+    byte    buf[5];
 
     for (i = 0; i < lengthof(msgs); i++) {
         write(DEV_tty0, msgs[i].iov_base, msgs[i].iov_len, F_WAIT|F_FLASH);
         write(DEV_tty0, (byte *)"\n", 1, F_WAIT);
     }
+
+    read(DEV_tty0, buf, 4, F_WAIT|F_SYNC);
+    buf[4] = '\0';
+    xprintf("Read [%s]\n", buf);
 
     timer_cnt = SECS_PER_CYCLE * 2;
     return yield(ST_WAIT);

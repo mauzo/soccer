@@ -11,12 +11,14 @@
 
 #include <avr/interrupt.h>
 
-static errno_t usart_open      (device_t *c, byte mode);
-static errno_t usart_write     (device_t *c);
+static errno_t usart_open   (device_t *c, byte mode);
+static errno_t usart_read   (device_t *d);
+static errno_t usart_write  (device_t *c);
 
 devsw_t usart_devsw = {
-    sw_open:    usart_open,
-    sw_write:   usart_write,
+    .sw_open    = usart_open,
+    .sw_read    = usart_read,
+    .sw_write   = usart_write,
 };
 
 static errno_t
@@ -24,6 +26,8 @@ usart_open (device_t *d, byte mode)
 {
     if (mode & DEV_WRITING)
         USART_CSRB(d)   |= USART_ENABLE_TX;
+    if (mode & DEV_READING)
+        USART_CSRB(d)   |= USART_ENABLE_RX;
 
     return 0;
 }
@@ -63,10 +67,33 @@ usart_setmode (dev_t d, byte mode)
 }
 
 static errno_t
+usart_read (device_t *d)
+{
+    USART_CSRB(d)   |= USART_IRQ_RXC;
+    return 0;
+}
+
+static errno_t
 usart_write (device_t *d)
 {
-    USART_CSRB(d)   |= USART_ENABLE_DRE;
+    USART_CSRB(d)   |= USART_IRQ_UDRE;
     return 0;
+}
+
+void
+usart_isr_rxc (device_t *dev)
+{
+    cdev_rw_t   *cd     = (cdev_rw_t *)dev->d_cdev;
+    iovec_t     *iov    = &cd->cd_reading;
+
+    if (iov->iov_len) {
+        *(byte *)iov->iov_base++    = USART_DR(dev);
+        iov->iov_len--;
+    }
+    if (!iov->iov_len) {
+        USART_CSRB(dev) &= ~USART_IRQ_RXC;
+        cd->cd_flags    &= ~DEV_READING;
+    }
 }
 
 /* This ISR must either set UDR or disable itself. Otherwise it will
@@ -85,8 +112,8 @@ usart_isr_udre (device_t *dev)
             USART_DR(dev)   = *(const byte *)iov->iov_base++;
         iov->iov_len--;
     }
-    else {
-        USART_CSRB(dev) &= ~USART_ENABLE_DRE;
+    if (!iov->iov_len) {
+        USART_CSRB(dev) &= ~USART_IRQ_UDRE;
         cd->cd_flags    &= ~DEV_WRITING;
     }
 }
