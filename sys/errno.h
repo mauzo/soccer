@@ -9,5 +9,6 @@ typedef int errno_t;
 #define ENODEV      (-3)    /* operation not supported by device */
 #define EINVAL      (-4)    /* invalid parameters */
 #define ESRCH       (-5)    /* process not found */
+#define EAGAIN      (-6)    /* operation would block */
 
 #endif

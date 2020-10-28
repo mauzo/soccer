@@ -59,19 +59,31 @@ poll (dev_t d, byte mode)
     return 1;
 }
 
-static errno_t
+static errno_t /*CRIT*/
 setup_read (device_t *dev, byte *b, size_t l, byte f _UNUSED)
 {
     cdev_rw_t   *cd     = (cdev_rw_t *)dev->d_cdev;
-    iovec_t     *iov    = &cd->cd_reading;
+    byte        *fl     = &cd->cd_flags;
+    iovec_t     *iov;
 
-    if (!cd->cd_flags & DEV_OPEN)
+    if (!*fl & DEV_OPEN)
         return EBADF;
+
+    if (*fl & DEV_READING) {
+        if (*fl & DEV_RD_NEXT)
+            return EAGAIN;
+
+        iov = &cd->cd_read_next;
+        *fl |= DEV_RD_NEXT;
+    }
+    else {
+        iov = &cd->cd_reading;
+        *fl |= DEV_READING;
+    }
 
     iov->iov_len    = l;
     iov->iov_base   = b;
 
-    cd->cd_flags    |= DEV_READING;
     return 0;
 }
 
@@ -88,20 +100,24 @@ read (dev_t d, byte *b, size_t l, byte f)
         return ENODEV;
 
     if (f & F_WAIT)
-        poll(d, DEV_READING);
+        poll(d, DEV_RD_NEXT);
 
     CRIT_START {
         err = setup_read(dev, b, l, f);
         if (!err) err = dsw->sw_read(dev);
     } CRIT_END;
 
+    if (err)
+        return err;
+
     if (f & F_SYNC)
         poll(d, DEV_READING);
 
-    return err;
+    return 0;
 }
 
-static errno_t
+
+static errno_t /*CRIT*/
 setup_write (device_t *d, const byte *b, size_t l, byte f)
 {
     cdev_rw_t   *cd     = (cdev_rw_t *)d->d_cdev;

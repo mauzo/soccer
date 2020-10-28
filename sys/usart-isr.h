@@ -15,15 +15,24 @@ usart_isr_rxc (device_t *dev)
 {
     cdev_rw_t   *cd     = (cdev_rw_t *)dev->d_cdev;
     iovec_t     *iov    = &cd->cd_reading;
+    byte        *fl     = &cd->cd_flags;
 
     if (iov->iov_len) {
         *(byte *)iov->iov_base++    = USART_DR(dev);
-        iov->iov_len--;
+        if (--iov->iov_len)
+            return;
     }
-    if (!iov->iov_len) {
-        USART_CSRB(dev) &= ~USART_IRQ_RXC;
-        cd->cd_flags    &= ~DEV_READING;
+
+    if (*fl & DEV_RD_NEXT) {
+        *iov    = cd->cd_read_next;
+        *fl     &= ~DEV_RD_NEXT;
+
+        cd->cd_read_next = (iovec_t){ 0 };
+        return;
     }
+
+    USART_CSRB(dev) &= ~USART_IRQ_RXC;
+    cd->cd_flags    &= ~DEV_READING;
 }
 
 _MACRO void

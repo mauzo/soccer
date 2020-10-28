@@ -14,7 +14,7 @@ mk_usart=	y
 SRCS.${mk_gpio}+=	sys/gpio.c
 SRCS.${mk_usart}+=	sys/usart.c
 
-TTY_SPEED=	10
+TTY_SPEED=	57600
 
 CFLAGS+=	-Os -ffunction-sections -fdata-sections -std=gnu99
 CFLAGS+=	-Werror -Wall -Wno-parentheses -Wno-error=unused-function
