@@ -11,33 +11,24 @@ struct wchan;
 
 typedef byte            tid_t;
 typedef struct task     task_t;
-typedef struct wchan    wchan_t;
-typedef wchan_t         task_run_t(byte next);
-
-/* Keep this below 4 bytes. Any more than that and the AVR doesn't like
- * keeping it in registers when we return it as a literal. */
-struct wchan {
-    byte        wc_next;    /* task-private; passed to run() */
-    byte        wc_type;    /* what we are waiting for */
-    uint16_t    wc_detail;  /* which ^ are we waiting for */
-};
+typedef byte            task_st_t;
+typedef task_st_t       task_run_t(task_st_t next);
 
 struct task {
-    wchan_t     tsk_wchan;
     task_run_t  *tsk_run;
+    byte        tsk_state;
+    task_st_t   tsk_next;
 };
 
 /* Values for wc_type */
-enum wchan_type {
+enum task_state {
     W_RUN,      /* Task is runnable now */
+    W_SLEEP,    /* Task is waiting for a device */
     W_STOPPED,  /* Task is stopped, wake with task_wake */
-    W_IRQ,      /* Waiting for an IRQ */
-    W_SWI,      /* Waiting for a SWI */
-    W_DEV,      /* Waiting for a device */
-    W_TIME,     /* Waiting for a timer */
 };
 
-extern task_t Tasks[NTASK];
+extern task_t   Tasks[NTASK];
+extern tid_t    Currtask;
 
 _MACRO task_t *
 tid2task (tid_t t)
@@ -46,30 +37,28 @@ tid2task (tid_t t)
     return &Tasks[t];
 }
 
+_MACRO void
+task_sleep (void)
+{
+    task_t  *task   = tid2task(Currtask);
+    task->tsk_state = W_SLEEP;
+}
+
+_MACRO void
+task_stop (void)
+{
+    task_t  *task   = tid2task(Currtask);
+    task->tsk_state = W_STOPPED;
+}
+
 _MACRO errno_t
 task_wake (tid_t t)
 {
     task_t  *task   = tid2task(t);
 
     if (!task) return ESRCH;
-    task->tsk_wchan.wc_type = W_RUN;
+    task->tsk_state = W_RUN;
     return 0;
-}
-
-_MACRO wchan_t
-yield (byte next) 
-{
-    return (wchan_t){ .wc_next = next }; 
-}
-
-_MACRO wchan_t
-wait (byte type, uint16_t detail, byte next)
-{
-    return (wchan_t){
-        .wc_next    = next,
-        .wc_type    = type,
-        .wc_detail  = detail,
-    };
 }
 
 #endif

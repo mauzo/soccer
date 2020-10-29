@@ -28,7 +28,7 @@ static uint32_t timer_cnt   = 0;
 static byte     buf[2][BUFLEN + 1];
 static byte     which = 0;
 
-static wchan_t
+static task_st_t
 st_setup (void)
 {
     open(DEV_tty0, DEV_READING|DEV_WRITING);
@@ -42,16 +42,16 @@ st_setup (void)
 
     read(DEV_tty0, buf[0], BUFLEN, 0);
     read(DEV_tty0, buf[1], BUFLEN, 0);
-    return yield(ST_PRINT);
+    return ST_PRINT;
 }
 
-static wchan_t
+static task_st_t
 st_print (void)
 {
     xprintf("Reading into buf %c.\n", which);
     print("Type something:\n");
 
-    return yield(ST_READ);
+    return ST_READ;
 }
 
 static void
@@ -65,7 +65,7 @@ show_tty0_cdev (_FLASH char *m)
         cd->cd_read_next.iov_base);
 }
 
-static wchan_t
+static task_st_t
 st_read (void)
 {
     /* wait for the first read to finish */
@@ -83,21 +83,21 @@ st_read (void)
     which = !which;
 
     timer_cnt = SECS_PER_CYCLE * 10;
-    return yield(ST_WAIT);
+    return ST_WAIT;
 }
 
-static wchan_t
+static task_st_t
 st_wait (void)
 {
     timer_cnt--;
 
     if (timer_cnt)
-        return yield(ST_WAIT);
+        return ST_WAIT;
     else
-        return yield(ST_PRINT);
+        return ST_PRINT;
 }
     
-wchan_t
+task_st_t
 ttytest_run (byte next)
 {
     switch (next) {

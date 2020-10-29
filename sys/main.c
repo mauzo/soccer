@@ -4,22 +4,27 @@
 #include <lib/console.h>
 #include <lib/xprintf.h>
 
+tid_t   Currtask;
+
 int
 main (void)
 {
-    byte    i;
-    task_t  *t;
-    wchan_t *w;
+    tid_t       i;
+    task_t      *t;
 
     while (1) {
         for (i = 0; i < NTASK; i++) {
-            t   = &Tasks[i];
-            w   = &t->tsk_wchan;
+            Currtask    = i;
+            t           = &Tasks[i];
             
-            switch (w->wc_type) {
+            switch (t->tsk_state) {
             case W_RUN:
                 //xprintf("Running task %u with %u\n", i, w->wc_next);
-                *w  = t->tsk_run(w->wc_next);
+                t->tsk_next  = t->tsk_run(t->tsk_next);
+                break;
+
+            case W_SLEEP:
+            case W_STOPPED:
                 break;
 
             default:

@@ -39,27 +39,27 @@ enum {
 };
 
 
-wchan_t
+task_st_t
 gpiotest_run (byte next)
 {
     switch (next) {
     case ST_START:
         setup_gpio();
-        return yield(ST_WAIT_PRESS);
+        return ST_WAIT_PRESS;
 
     case ST_WAIT_PRESS:
         if (!check_switch())
-            return yield(ST_WAIT_PRESS);
+            return ST_WAIT_PRESS;
         
         print("Button pressed!\n");
         toggle_light();
-        return yield(ST_WAIT_RELEASE);
+        return ST_WAIT_RELEASE;
 
     case ST_WAIT_RELEASE:
         if (check_switch())
-            return yield(ST_WAIT_RELEASE);
+            return ST_WAIT_RELEASE;
         else
-            return yield(ST_WAIT_PRESS);
+            return ST_WAIT_PRESS;
     }
 
     panic("Nothing to do!");
