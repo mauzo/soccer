@@ -18,6 +18,8 @@ void    cons_write  (const char *msg, size_t sz, byte flags);
 void    _panic      (_FLASH char *msg, size_t sz) _DEAD;
 void    _print      (_FLASH char *s, size_t sz);
 
+void    cons_flash  (void);
+
 __END_DECLS
 
 #endif
