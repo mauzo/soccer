@@ -1,6 +1,7 @@
 #ifndef _sys_sleep_h
 #define _sys_sleep_h
 
+#include <avr/cpufunc.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 

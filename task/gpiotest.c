@@ -13,6 +13,9 @@
 #define PIN_LIGHT   GPIO_LED_BUILTIN
 #define PIN_SWITCH  GPIO_PIN_2
 
+#define STAT_PORT GPIO_PORT(DEV_gpio0, PIN_LIGHT)
+#define STAT_BIT GPIO_BIT(DEV_gpio0, PIN_LIGHT)
+
 static void
 setup_gpio (void)
 {

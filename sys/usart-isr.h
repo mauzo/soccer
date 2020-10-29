@@ -15,7 +15,6 @@ usart_isr_rxc (device_t *dev)
 {
     cdev_rw_t   *cd     = (cdev_rw_t *)dev->d_cdev;
     iovec_t     *iov    = &cd->cd_reading;
-    byte        *fl     = &cd->cd_flags;
 
     if (iov->iov_len) {
         *(byte *)iov->iov_base++    = USART_DR(dev);
@@ -23,16 +22,15 @@ usart_isr_rxc (device_t *dev)
             return;
     }
 
-    if (*fl & DEV_RD_NEXT) {
-        *iov    = cd->cd_read_next;
-        *fl     &= ~DEV_RD_NEXT;
-
-        cd->cd_read_next = (iovec_t){ 0 };
+    if (cd->cd_rd_flags & DEV_RD_NEXT) {
+        cd->cd_reading  = cd->cd_rd_next;
+        cd->cd_rd_flags &= ~DEV_RD_NEXT;
+        cd->cd_rd_next  = (iovec_t){ 0 };
         return;
     }
 
     USART_CSRB(dev) &= ~USART_IRQ_RXC;
-    cd->cd_flags    &= ~DEV_READING;
+    cd->cd_rd_flags &= ~DEV_READING;
 }
 
 _MACRO void
@@ -42,7 +40,7 @@ usart_isr_udre (device_t *dev)
     iovec_t     *iov    = &cd->cd_writing;
 
     if (iov->iov_len) {
-        if (cd->cd_flags & DEV_WR_FLASH)
+        if (cd->cd_wr_flags & DEV_WR_FLASH)
             USART_DR(dev)   = *(_FLASH byte *)iov->iov_base++;
         else
             USART_DR(dev)   = *(const byte *)iov->iov_base++;
@@ -50,7 +48,7 @@ usart_isr_udre (device_t *dev)
     }
     if (!iov->iov_len) {
         USART_CSRB(dev) &= ~USART_IRQ_UDRE;
-        cd->cd_flags    &= ~DEV_WRITING;
+        cd->cd_wr_flags &= ~DEV_WRITING;
     }
 }
 

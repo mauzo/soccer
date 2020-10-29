@@ -10,5 +10,6 @@ typedef int errno_t;
 #define EINVAL      (-4)    /* invalid parameters */
 #define ESRCH       (-5)    /* process not found */
 #define EAGAIN      (-6)    /* operation would block */
+#define EBUSY       (-7)    /* device busy */
 
 #endif

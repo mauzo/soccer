@@ -24,9 +24,9 @@ devsw_t usart_devsw = {
 static errno_t
 usart_open (device_t *d, byte mode)
 {
-    if (mode & DEV_WRITING)
+    if (mode & O_WRITE)
         USART_CSRB(d)   |= USART_ENABLE_TX;
-    if (mode & DEV_READING)
+    if (mode & O_READ)
         USART_CSRB(d)   |= USART_ENABLE_RX;
 
     return 0;

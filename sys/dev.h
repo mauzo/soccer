@@ -6,29 +6,26 @@
 #include <sys/errno.h>
 #include <sys/uio.h>
 
-struct cdev;
 struct devsw;
 struct device;
 
-typedef struct cdev             cdev_t;
+typedef void                    cdev_t;
 typedef struct cdev_rw          cdev_rw_t;
 typedef _FLASH struct devsw     devsw_t;
 typedef _FLASH void             softc_t;
 typedef _FLASH struct device    device_t;
 
 /* The cdev lives in SRAM and holds the device-specific status. This
- * structure holds the generic device status; it is extended by devices
- * that need to keep their own data.
+ * structure holds status for devices which support read and write.
  */
-struct cdev {
-    byte    cd_flags;
-};
-
 struct cdev_rw {
-    byte            cd_flags;
-    struct iovec    cd_reading;
-    struct iovec    cd_read_next;
-    struct iovec    cd_writing;
+    byte    cd_rd_tid   : 5;
+    byte    cd_rd_flags : 3;
+    byte    cd_wr_tid   : 5;
+    byte    cd_wr_flags : 3;
+    iovec_t cd_reading;
+    iovec_t cd_rd_next;
+    iovec_t cd_writing;
 };
 
 /* The devsw lives in flash and holds function pointers to the device
@@ -58,11 +55,17 @@ struct device {
 };
 
 /* Flags for open/poll */
-#define     DEV_OPEN        0x01    /* dev is ready for use */
-#define     DEV_READING     0x02    /* dev is currently reading */
-#define     DEV_RD_NEXT     0x04    /* cd_read_next is valid */
-#define     DEV_WRITING     0x08    /* dev is currently writing */
-#define     DEV_WR_FLASH    0x10    /* dev is writing from flash */
+#define     O_READ          0x01    /* open for reading */
+#define     O_WRITE         0x02    /* open for writing */
+#define     O_RDONLY        O_READ  /* Unix compat */
+#define     O_WRONLY        O_WRITE
+#define     O_RDWR          (O_READ|O_WRITE)
+
+/* Flags for cd_{rd,wr}_flags */
+#define     DEV_READING     0x01    /* dev is reading */
+#define     DEV_RD_NEXT     0x02    /* dev has a second read buf */
+#define     DEV_WRITING     0x01    /* dev is writing */
+#define     DEV_WR_FLASH    0x02    /* dev is writing from flash */
 
 /* Flags for read/write */
 #define     F_WAIT          0x1     /* wait for device to be ready */
@@ -127,10 +130,12 @@ __BEGIN_DECLS
 _MACRO device_t *devnum2dev (dev_t d)
     { return &Devices[d]; }
 
-errno_t open    (dev_t d, byte mode);
-bool    poll    (dev_t d, byte mode);
-errno_t read    (dev_t d, byte *b, size_t l, byte f);
-errno_t write   (dev_t d, const byte *b, size_t l, byte f);
+errno_t open        (dev_t d, byte mode);
+void    poll        (dev_t d, byte mode);
+errno_t write       (dev_t d, const byte *b, size_t l, byte f);
+errno_t read_setbuf (dev_t d, byte *b, size_t l, byte f);
+errno_t read_setlen (dev_t d, byte *b, size_t l);
+errno_t read_active (dev_t d, byte *b, size_t l);
 
 __END_DECLS
 
