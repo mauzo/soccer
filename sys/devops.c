@@ -11,7 +11,7 @@
 #include <sys/uio.h>
 
 static errno_t  get_cdev    (dev_t d, cdev_rw_t **cd, device_t **devp);
-static bool     in_vec      (byte *ptr, iovec_t *iov);
+static bool     in_vec      (const byte *ptr, iovec_t *iov);
 static errno_t  setup_read  (cdev_rw_t *cd, byte *b, size_t l, byte f);
 static errno_t  setup_write (cdev_rw_t *cd, const byte *b, size_t l, byte f);
 
@@ -36,7 +36,7 @@ get_cdev (dev_t d, cdev_rw_t **cd, device_t **devp)
 }
 
 static bool
-in_vec (byte *ptr, iovec_t *iov)
+in_vec (const byte *ptr, iovec_t *iov)
 {
     if ((void *)ptr >= iov->iov_base && 
         (void *)ptr < (iov->iov_base + iov->iov_len)
@@ -218,7 +218,7 @@ setup_write (cdev_rw_t *cd, const byte *b, size_t l, byte f)
 }
 
 errno_t
-write (dev_t d, const byte *b, size_t l, byte f)
+write_queue (dev_t d, const byte *b, size_t l, byte f)
 {
     device_t    *dev;
     cdev_rw_t   *cd;
@@ -239,9 +239,33 @@ write (dev_t d, const byte *b, size_t l, byte f)
         if (!err) err = dev->d_devsw->sw_write(dev);
     } CRIT_END;
 
-    /* XXX someone else might get in and start another write */
-    if (f & F_SYNC)
-        poll(d, O_WRITE);
-
     return err;
 }
+
+errno_t
+write_poll (dev_t d, const byte *ptr, byte flg)
+{
+    errno_t     err     = 0;
+    cdev_rw_t   *cd;
+    byte        *cur;
+
+    if ((err = get_cdev(d, &cd, NULL)))
+        return err;
+    if (!(cd->cd_wr_tid == Currtask || flg & F_CONSWRITE))
+        return EBADF;
+
+    CRIT_START {
+        if (in_vec(ptr, &cd->cd_writing))
+            err = EAGAIN;
+        else
+            cur = cd->cd_writing.iov_base;
+    } CRIT_END;
+
+    if (err) return err;
+
+    /* If ptr is within the original extent of cd_reading, this returns
+     * the number of bytes read since we read ptr. Caller needs to
+     * verify the return value is within the orignal length of the buf. */
+    return cur > ptr ? cur - ptr : 0;
+}
+

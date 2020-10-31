@@ -40,7 +40,17 @@ cons_flash (void)
 void
 cons_write (const char *msg, size_t sz, byte flags)
 {
-    write(0, (const byte *)msg, sz, flags|F_WAIT|F_CONSWRITE);
+    errno_t     err;
+    const byte  *buf    = (const byte *)msg;
+
+    err     = EAGAIN;
+    while (err == EAGAIN)
+        err = write_queue(0, buf, sz, flags|F_CONSWRITE);
+    if (err) return;
+
+    err     = EAGAIN;
+    while (err == EAGAIN)
+        err = write_poll(0, buf+sz-1, flags|F_CONSWRITE);
 }
 
 void
