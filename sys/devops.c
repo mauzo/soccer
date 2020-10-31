@@ -10,6 +10,9 @@
 #include <sys/task.h>
 #include <sys/uio.h>
 
+// XXX
+#include <lib/console.h>
+
 static errno_t  get_cdev    (dev_t d, cdev_rw_t **cd, device_t **devp);
 static bool     in_vec      (const byte *ptr, iovec_t *iov);
 static errno_t  setup_read  (cdev_rw_t *cd, byte *b, size_t l, byte f);
@@ -205,6 +208,9 @@ setup_write (cdev_rw_t *cd, const byte *b, size_t l, byte f)
 {
     iovec_t     *iov    = &cd->cd_writing;
 
+    if (cd->cd_wr_flags & DEV_WRITING)
+        return EAGAIN;
+
     iov->iov_base   = (void *)b;
     iov->iov_len    = l;
 
@@ -231,13 +237,14 @@ write_queue (dev_t d, const byte *b, size_t l, byte f)
     if (!(cd->cd_wr_tid == Currtask || f & F_CONSWRITE))
         return EBADF;
 
-    if (f & F_WAIT)
-        poll(d, O_WRITE);
-
+  retry:
     CRIT_START {
         err = setup_write(cd, b, l, f);
         if (!err) err = dev->d_devsw->sw_write(dev);
     } CRIT_END;
+
+    if (err == EAGAIN && f & F_WAIT)
+        goto retry;
 
     return err;
 }
@@ -254,6 +261,8 @@ write_poll (dev_t d, const byte *ptr, byte flg)
     if (!(cd->cd_wr_tid == Currtask || flg & F_CONSWRITE))
         return EBADF;
 
+  retry:
+    err = 0;
     CRIT_START {
         if (in_vec(ptr, &cd->cd_writing))
             err = EAGAIN;
@@ -261,7 +270,10 @@ write_poll (dev_t d, const byte *ptr, byte flg)
             cur = cd->cd_writing.iov_base;
     } CRIT_END;
 
-    if (err) return err;
+    if (err == EAGAIN && flg & F_WAIT)
+        goto retry;
+    if (err)
+        return err;
 
     /* If ptr is within the original extent of cd_reading, this returns
      * the number of bytes read since we read ptr. Caller needs to

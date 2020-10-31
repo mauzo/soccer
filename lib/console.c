@@ -40,17 +40,10 @@ cons_flash (void)
 void
 cons_write (const char *msg, size_t sz, byte flags)
 {
-    errno_t     err;
     const byte  *buf    = (const byte *)msg;
 
-    err     = EAGAIN;
-    while (err == EAGAIN)
-        err = write_queue(0, buf, sz, flags|F_CONSWRITE);
-    if (err) return;
-
-    err     = EAGAIN;
-    while (err == EAGAIN)
-        err = write_poll(0, buf+sz-1, flags|F_CONSWRITE);
+    write_queue(0, buf, sz, flags|F_CONSWRITE|F_WAIT);
+    write_poll(0, buf+sz-1, flags|F_CONSWRITE|F_WAIT);
 }
 
 void
@@ -64,7 +57,7 @@ _panic (_FLASH char *msg, size_t sz)
 {
     cons_write(panic_header, sizeof(panic_header), F_FLASH);
     cons_write(msg, sz, F_FLASH);
-    cons_write(panic_footer, sizeof(panic_footer), F_FLASH|F_SYNC);
+    cons_write(panic_footer, sizeof(panic_footer), F_FLASH);
 
     _delay_ms(5000);
     exit(255);
