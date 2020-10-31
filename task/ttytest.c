@@ -41,8 +41,8 @@ st_setup (void)
     print("And again...\n");
     xprintf("buf[0]: %x, buf[1]: %x\n", buf[0], buf[1]);
 
-    read_setbuf(DEV_tty0, buf[0], BUFLEN, 0);
-    read_setbuf(DEV_tty0, buf[1], BUFLEN, 0);
+    read_queue(DEV_tty0, buf[0], BUFLEN, 0);
+    read_queue(DEV_tty0, buf[1], BUFLEN, 0);
     return ST_PRINT;
 }
 
@@ -56,29 +56,29 @@ st_print (void)
 }
 
 static void
-show_tty0_cdev (_FLASH char *m)
+show_tty0_cdev (_FLASH char *m, byte *ptr)
 {
     device_t    *dev    = devnum2dev(DEV_tty0);
     cdev_rw_t   *cd     = (cdev_rw_t *)dev->d_cdev;
-    xprintf("%S: flags %x, reading %x, rd_next %x\n",
+    xprintf("%S: flags %x, reading %x+%u, rd_next %x+%u, ptr %x\n",
         m, cd->cd_rd_flags, 
-        cd->cd_reading.iov_base,
-        cd->cd_rd_next.iov_base);
+        cd->cd_reading.iov_base, cd->cd_reading.iov_len,
+        cd->cd_rd_next.iov_base, cd->cd_rd_next.iov_len,
+        ptr);
 }
 
 static task_st_t
 st_read (void)
 {
     /* wait for the first read to finish */
-    show_tty0_cdev(_F("Before poll"));
-    poll(DEV_tty0, O_READ);
-    show_tty0_cdev(_F("After poll"));
+    if (read_poll(DEV_tty0, buf[which] + BUFLEN - 1, 0) < 0)
+        return ST_READ;
 
     /* process the data read */
     xprintf("Read [%s]\n", buf[which]);
 
     /* set up the next read into the buf we just finished with */
-    read_setbuf(DEV_tty0, buf[which], BUFLEN, 0);
+    read_queue(DEV_tty0, buf[which], BUFLEN, 0);
 
     /* use the other buf next time */
     which = !which;

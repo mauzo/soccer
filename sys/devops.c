@@ -11,6 +11,7 @@
 #include <sys/uio.h>
 
 static errno_t  get_cdev    (dev_t d, cdev_rw_t **cd, device_t **devp);
+static bool     in_vec      (byte *ptr, iovec_t *iov);
 static errno_t  setup_read  (cdev_rw_t *cd, byte *b, size_t l, byte f);
 static errno_t  setup_write (cdev_rw_t *cd, const byte *b, size_t l, byte f);
 
@@ -31,6 +32,16 @@ get_cdev (dev_t d, cdev_rw_t **cd, device_t **devp)
     if (devp)
         *devp   = dev;
 
+    return 0;
+}
+
+static bool
+in_vec (byte *ptr, iovec_t *iov)
+{
+    if ((void *)ptr >= iov->iov_base && 
+        (void *)ptr < (iov->iov_base + iov->iov_len)
+    )
+        return 1;
     return 0;
 }
 
@@ -114,7 +125,7 @@ setup_read (cdev_rw_t *cd, byte *b, size_t l, byte f _UNUSED)
 }
 
 errno_t
-read_setbuf (dev_t d, byte *b, size_t l, byte f)
+read_queue (dev_t d, byte *b, size_t l, byte f)
 {
     device_t    *dev;
     cdev_rw_t   *cd;
@@ -136,6 +147,33 @@ read_setbuf (dev_t d, byte *b, size_t l, byte f)
     } CRIT_END;
 
     return err;
+}
+
+errno_t
+read_poll (dev_t d, byte *ptr, byte flg _UNUSED)
+{
+    errno_t     err     = 0;
+    cdev_rw_t   *cd;
+    byte        *cur;
+
+    if ((err = get_cdev(d, &cd, NULL)))
+        return err;
+    if (cd->cd_rd_tid != Currtask)
+        return EBADF;
+
+    CRIT_START {
+        if (in_vec(ptr, &cd->cd_reading) || in_vec(ptr, &cd->cd_rd_next))
+            err = EAGAIN;
+        else
+            cur = cd->cd_reading.iov_base;
+    } CRIT_END;
+
+    if (err) return err;
+
+    /* If ptr is within the original extent of cd_reading, this returns
+     * the number of bytes read since we read ptr. Caller needs to
+     * verify the return value is within the orignal length of the buf. */
+    return cur > ptr ? cur - ptr : 0;
 }
 
 errno_t

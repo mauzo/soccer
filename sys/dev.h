@@ -133,9 +133,9 @@ _MACRO device_t *devnum2dev (dev_t d)
 errno_t open        (dev_t d, byte mode);
 void    poll        (dev_t d, byte mode);
 errno_t write       (dev_t d, const byte *b, size_t l, byte f);
-errno_t read_setbuf (dev_t d, byte *b, size_t l, byte f);
-errno_t read_setlen (dev_t d, byte *b, size_t l);
-errno_t read_active (dev_t d, byte *b, size_t l);
+
+errno_t read_queue  (dev_t d, byte *buf, size_t len, byte flg);
+errno_t read_poll   (dev_t d, byte *ptr, byte flg);
 
 __END_DECLS
 
