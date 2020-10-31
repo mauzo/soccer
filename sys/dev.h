@@ -68,9 +68,12 @@ struct device {
 #define     DEV_WR_FLASH    0x02    /* dev is writing from flash */
 
 /* Flags for read/write */
-#define     F_WAIT          0x1     /* wait for device to be ready */
-#define     F_SYNC          0x2     /* wait for read/write to finish */
+#define     F_POLL          0x0     /* poll only; no flag for now */
+#define     F_WAIT          0x1     /* busy-wait */
+#define     F_SLEEP         0x2     /* put task to sleep */
+#define     F_SYNC          F_SLEEP /* wait for write to complete */
 #define     F_FLASH         0x4     /* write from flash */
+#define     F_CONSWRITE     0x8     /* console write, no tid check */
 
 extern device_t Devices[];
 
@@ -132,7 +135,7 @@ _MACRO device_t *devnum2dev (dev_t d)
 
 errno_t open        (dev_t d, byte mode);
 void    poll        (dev_t d, byte mode);
-errno_t write       (dev_t d, const byte *b, size_t l, byte f);
+errno_t write       (dev_t d, const byte *buf, size_t len, byte flg);
 
 errno_t read_queue  (dev_t d, byte *buf, size_t len, byte flg);
 errno_t read_poll   (dev_t d, byte *ptr, byte flg);

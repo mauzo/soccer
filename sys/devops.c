@@ -228,7 +228,7 @@ write (dev_t d, const byte *b, size_t l, byte f)
         return err;
     if (!dev->d_devsw->sw_write)
         return ENODEV;
-    if (cd->cd_wr_tid != Currtask)
+    if (!(cd->cd_wr_tid == Currtask || f & F_CONSWRITE))
         return EBADF;
 
     if (f & F_WAIT)
