@@ -15,6 +15,7 @@
 
 static errno_t  get_cdev    (dev_t d, cdev_rw_t **cd, device_t **devp);
 static bool     in_vec      (const byte *ptr, iovec_t *iov);
+static bool     need_retry  (errno_t err, byte flg, const byte *ptr);
 static errno_t  setup_read  (cdev_rw_t *cd, byte *b, size_t l, byte f);
 static errno_t  setup_write (cdev_rw_t *cd, const byte *b, size_t l, byte f);
 
@@ -45,6 +46,20 @@ in_vec (const byte *ptr, iovec_t *iov)
         (void *)ptr < (iov->iov_base + iov->iov_len)
     )
         return 1;
+    return 0;
+}
+
+static bool
+need_retry (errno_t err, byte flg, const byte *ptr)
+{
+    if (err != EAGAIN)
+        return 0;
+
+    if (flg & F_WAIT)
+        return 1;
+
+    /* XXX F_SLEEP */
+
     return 0;
 }
 
@@ -141,13 +156,12 @@ read_queue (dev_t d, byte *b, size_t l, byte f)
     if (cd->cd_rd_tid != Currtask)
         return EBADF;
 
-    if (f & F_WAIT)
-        poll(d, O_READ);
-
-    CRIT_START {
-        err = setup_read(cd, b, l, f);
-        if (!err) err = dev->d_devsw->sw_read(dev);
-    } CRIT_END;
+    do {
+        CRIT_START {
+            err = setup_read(cd, b, l, f);
+            if (!err) err = dev->d_devsw->sw_read(dev);
+        } CRIT_END;
+    } while (need_retry(err, f, NULL));
 
     return err;
 }
@@ -164,12 +178,15 @@ read_poll (dev_t d, byte *ptr, byte flg _UNUSED)
     if (cd->cd_rd_tid != Currtask)
         return EBADF;
 
-    CRIT_START {
-        if (in_vec(ptr, &cd->cd_reading) || in_vec(ptr, &cd->cd_rd_next))
-            err = EAGAIN;
-        else
-            cur = cd->cd_reading.iov_base;
-    } CRIT_END;
+    do {
+        err = 0;
+        CRIT_START {
+            if (in_vec(ptr, &cd->cd_reading) || in_vec(ptr, &cd->cd_rd_next))
+                err = EAGAIN;
+            else
+                cur = cd->cd_reading.iov_base;
+        } CRIT_END;
+    } while (need_retry(err, flg, ptr));
 
     if (err) return err;
 
@@ -237,14 +254,12 @@ write_queue (dev_t d, const byte *b, size_t l, byte f)
     if (!(cd->cd_wr_tid == Currtask || f & F_CONSWRITE))
         return EBADF;
 
-  retry:
-    CRIT_START {
-        err = setup_write(cd, b, l, f);
-        if (!err) err = dev->d_devsw->sw_write(dev);
-    } CRIT_END;
-
-    if (err == EAGAIN && f & F_WAIT)
-        goto retry;
+    do {
+        CRIT_START {
+            err = setup_write(cd, b, l, f);
+            if (!err) err = dev->d_devsw->sw_write(dev);
+        } CRIT_END;
+    } while (need_retry(err, f, NULL));
 
     return err;
 }
@@ -261,19 +276,17 @@ write_poll (dev_t d, const byte *ptr, byte flg)
     if (!(cd->cd_wr_tid == Currtask || flg & F_CONSWRITE))
         return EBADF;
 
-  retry:
-    err = 0;
-    CRIT_START {
-        if (in_vec(ptr, &cd->cd_writing))
-            err = EAGAIN;
-        else
-            cur = cd->cd_writing.iov_base;
-    } CRIT_END;
+    do {
+        err = 0;
+        CRIT_START {
+            if (in_vec(ptr, &cd->cd_writing))
+                err = EAGAIN;
+            else
+                cur = cd->cd_writing.iov_base;
+        } CRIT_END;
+    } while (need_retry(err, flg, ptr));
 
-    if (err == EAGAIN && flg & F_WAIT)
-        goto retry;
-    if (err)
-        return err;
+    if (err) return err;
 
     /* If ptr is within the original extent of cd_reading, this returns
      * the number of bytes read since we read ptr. Caller needs to
