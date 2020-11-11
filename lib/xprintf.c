@@ -82,8 +82,11 @@ _xprintf (_FLASH char *f, ...)
             cons_write(mark, strlen_P(mark), F_FLASH);
             break;
 
-        /* (u)char is promoted to int */
         case 'c':
+            buf[0]  = (char)va_arg(ap, int);
+            cons_write(buf, 1, 0);
+            break;
+
         case 'd':
             b       = fmt_i(END(buf), va_arg(ap, int));
             cons_write(b, END(buf) - b, 0);
