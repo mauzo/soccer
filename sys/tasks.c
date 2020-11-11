@@ -7,11 +7,9 @@
 
 task_run_t  ttytest_run;
 task_run_t  gpiotest_run;
+task_run_t  pkttest_run;
 
 task_t Tasks[NTASK] = {
-    [TASK_ttytest]  = 
-        { .tsk_run  = ttytest_run, },
-    [TASK_gpiotest] =
-        { .tsk_run  = gpiotest_run, },
+    [TASK_pkttest]  = { .tsk_run = pkttest_run },
 };
 

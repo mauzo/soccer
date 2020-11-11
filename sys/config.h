@@ -20,8 +20,7 @@ enum {
 #define gpio_INIT_FIXED_SOFTC { .gp_iop = 0x23, .gp_maxpin = 23 }
 
 enum {
-    TASK_ttytest,
-    TASK_gpiotest,
+    TASK_pkttest,
     NTASK,
 };
 

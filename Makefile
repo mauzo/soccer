@@ -1,11 +1,11 @@
 .include "config.mk"
 .include "../avr-mk/avr.mk"
 
-PROG=	gpiotest
+PROG=	pkttest
 
-SRCS+=	task/gpiotest.c task/ttytest.c
+SRCS+=	task/pkttest.c
 SRCS+=  sys/devops.c sys/main.c sys/devices.c sys/tasks.c
-SRCS+=  lib/console.c lib/xprintf.c
+SRCS+=  lib/console.c lib/debug.c lib/xprintf.c
 SRCS+=	${SRCS.y}
 
 mk_gpio=	y
@@ -18,6 +18,7 @@ TTY_SPEED=	57600
 
 CFLAGS+=	-Os -ffunction-sections -fdata-sections -std=gnu99
 CFLAGS+=	-Werror -Wall -Wno-parentheses -Wno-error=unused-function
+#CFLAGS+=        -Wpointer-arith
 CFLAGS+=	-I${.CURDIR}
 CFLAGS+=	-DTTY_SPEED=${TTY_SPEED}
 

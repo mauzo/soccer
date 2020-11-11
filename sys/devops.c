@@ -13,8 +13,14 @@
 // XXX
 #include <lib/console.h>
 
+enum {
+    VEC_READING,
+    VEC_RD_NEXT,
+    VEC_WRITING,
+};
+
 static errno_t  get_cdev    (dev_t d, cdev_rw_t **cd, device_t **devp);
-static bool     in_vec      (const byte *ptr, iovec_t *iov);
+static bool     in_vec      (const byte *ptr, cdev_rw_t *cd, byte which);
 static bool     need_retry  (errno_t err, byte flg, const byte *ptr);
 static errno_t  setup_read  (cdev_rw_t *cd, byte *b, size_t l, byte f);
 static errno_t  setup_write (cdev_rw_t *cd, const byte *b, size_t l, byte f);
@@ -40,12 +46,33 @@ get_cdev (dev_t d, cdev_rw_t **cd, device_t **devp)
 }
 
 static bool
-in_vec (const byte *ptr, iovec_t *iov)
+in_vec (const byte *ptr, cdev_rw_t *cd, byte which)
 {
-    if ((void *)ptr >= iov->iov_base && 
-        (void *)ptr < (iov->iov_base + iov->iov_len)
+    iovec_t     *iov;
+
+    switch (which) {
+    case VEC_READING:
+        if (!(cd->cd_rd_flags & DEV_READING))
+            return 0;
+        iov = &cd->cd_reading;
+        break;
+    case VEC_RD_NEXT:
+        if (!(cd->cd_rd_flags & DEV_RD_NEXT))
+            return 0;
+        iov = &cd->cd_rd_next;
+        break;
+    case VEC_WRITING:
+        if (!(cd->cd_wr_flags & DEV_WRITING))
+            return 0;
+        iov = &cd->cd_writing;
+        break;
+    }
+
+    if (ptr >= (byte *)iov->iov_base && 
+        ptr < ((byte *)iov->iov_base + iov->iov_len)
     )
         return 1;
+
     return 0;
 }
 
@@ -181,7 +208,9 @@ read_poll (dev_t d, byte *ptr, byte flg _UNUSED)
     do {
         err = 0;
         CRIT_START {
-            if (in_vec(ptr, &cd->cd_reading) || in_vec(ptr, &cd->cd_rd_next))
+            if (in_vec(ptr, cd, VEC_READING) || 
+                in_vec(ptr, cd, VEC_RD_NEXT)
+            )
                 err = EAGAIN;
             else
                 cur = cd->cd_reading.iov_base;
@@ -197,24 +226,26 @@ read_poll (dev_t d, byte *ptr, byte flg _UNUSED)
 }
 
 errno_t
-read_setlen (dev_t d, byte *b, size_t l)
+read_adjust (dev_t d, byte *b, size_t l)
 {
-    cdev_rw_t   *cd;
     errno_t     err     = 0;
-    byte        *cur;
+    cdev_rw_t   *cd;
+    iovec_t     *iov;
+    byte        *ptr    = b + l - 1;
 
     if ((err = get_cdev(d, &cd, NULL)))
         return err;
 
     CRIT_START {
-        cur     = cd->cd_reading.iov_base;
-
-        if (b == cd->cd_rd_next.iov_base)
-            cd->cd_rd_next.iov_len  = l;
-        else if (cur >= b && cur < b + l)
-            cd->cd_reading.iov_len  = (b + l) - cur;
+        if (in_vec(ptr, cd, VEC_READING))
+            iov = &cd->cd_reading;
+        else if (in_vec(ptr, cd, VEC_RD_NEXT))
+            iov = &cd->cd_rd_next;
         else
             err = EINVAL;
+
+        if (!err)
+            iov->iov_len = ptr - (byte *)iov->iov_base + 1;
     } CRIT_END;
 
     return err;
@@ -279,7 +310,7 @@ write_poll (dev_t d, const byte *ptr, byte flg)
     do {
         err = 0;
         CRIT_START {
-            if (in_vec(ptr, &cd->cd_writing))
+            if (in_vec(ptr, cd, VEC_WRITING))
                 err = EAGAIN;
             else
                 cur = cd->cd_writing.iov_base;

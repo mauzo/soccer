@@ -139,6 +139,7 @@ errno_t write       (dev_t d, const byte *buf, size_t len, byte flg);
 
 errno_t read_queue  (dev_t d, byte *buf, size_t len, byte flg);
 errno_t read_poll   (dev_t d, byte *ptr, byte flg);
+errno_t read_adjust (dev_t d, byte *buf, size_t len);
 
 errno_t write_queue (dev_t d, const byte *buf, size_t len, byte flg);
 errno_t write_poll  (dev_t d, const byte *ptr, byte flg);
