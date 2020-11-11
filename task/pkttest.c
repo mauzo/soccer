@@ -7,12 +7,10 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/dev.h>
+#include <sys/sleep.h>
 #include <sys/task.h>
 #include <sys/tty.h>
 #include <sys/usart.h>
-
-#include <avr/interrupt.h>
-#include <util/delay.h>
 
 #include <lib/console.h>
 #include <lib/debug.h>
@@ -37,7 +35,7 @@ st_setup (void)
     open(DEV_tty0, O_READ|O_WRITE);
     usart_setbaud(DEV_tty0, TTY_SPEED);
     usart_setmode(DEV_tty0, CS8);
-    _delay_ms(2000);
+    delay(2000000);
     sei();
 
     print("Starting\n");
