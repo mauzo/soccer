@@ -9,6 +9,6 @@
 #include <sys/types.h>
 #include <sys/dev.h>
 
-void    debug_show_cdev_rw  (dev_t d, _FLASH char *m, byte *ptr);
+void    debug_show_cdev_rw  (dev_t d, _FLASH char *m);
 
 #endif

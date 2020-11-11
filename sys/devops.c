@@ -194,10 +194,11 @@ read_queue (dev_t d, byte *b, size_t l, byte f)
 }
 
 errno_t
-read_poll (dev_t d, byte *ptr, byte flg _UNUSED)
+read_poll (dev_t d, byte *buf, size_t len, byte flg _UNUSED)
 {
     errno_t     err     = 0;
     cdev_rw_t   *cd;
+    byte        *ptr    = buf + len - 1;
     byte        *cur;
 
     if ((err = get_cdev(d, &cd, NULL)))

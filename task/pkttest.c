@@ -55,16 +55,16 @@ st_rd_queue (void)
 static task_st_t
 st_rd_len (void)
 {
-    if (read_poll(DEV_tty0, &buf[0], F_POLL) < 0)
+    if (read_poll(DEV_tty0, buf, 1, F_POLL) < 0)
         return ST_RD_LEN;
 
     pktlen  = buf[0] - 'a' + 1;
     xprintf("Polled for len, got [%c] => [%u]\n", buf[0], pktlen);
 
-    debug_show_cdev_rw(DEV_tty0, _F("Before adjust"), NULL);
+    debug_show_cdev_rw(DEV_tty0, _F("Before adjust"));
     if (read_adjust(DEV_tty0, buf, pktlen) < 0)
         print("OVERFLOW!\n");
-    debug_show_cdev_rw(DEV_tty0, _F("After adjust"), NULL);
+    debug_show_cdev_rw(DEV_tty0, _F("After adjust"));
 
     return ST_RD_PKT;
 }
@@ -72,12 +72,11 @@ st_rd_len (void)
 static task_st_t
 st_rd_pkt (void)
 {
-    byte    *end    = &buf[pktlen - 1];
 
-    if (read_poll(DEV_tty0, end, F_POLL) < 0)
+    if (read_poll(DEV_tty0, buf, pktlen, F_POLL) < 0)
         return ST_RD_PKT;
 
-    debug_show_cdev_rw(DEV_tty0, _F("After pkt poll"), end);
+    debug_show_cdev_rw(DEV_tty0, _F("After pkt poll"));
     xprintf("Read packet len [%u]: [%s]\n", pktlen, buf);
 
     return ST_STOP;
