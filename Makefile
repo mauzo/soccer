@@ -1,9 +1,9 @@
 .include "config.mk"
 .include "../avr-mk/avr.mk"
 
-PROG=	pkttest
+PROG=	gpioctl
 
-SRCS+=	task/pkttest.c
+SRCS+=	task/gpioctl.c
 SRCS+=  sys/devops.c sys/main.c sys/devices.c sys/tasks.c
 SRCS+=  lib/console.c lib/debug.c lib/xprintf.c
 SRCS+=	${SRCS.y}
@@ -15,6 +15,7 @@ SRCS.${mk_gpio}+=	sys/gpio.c
 SRCS.${mk_usart}+=	sys/usart.c
 
 TTY_SPEED=	57600
+CUFLAGS+=       -h
 
 CFLAGS+=	-Os -ffunction-sections -fdata-sections -std=gnu99
 CFLAGS+=	-Werror -Wall -Wno-parentheses -Wno-error=unused-function
