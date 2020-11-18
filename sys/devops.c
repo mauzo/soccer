@@ -297,11 +297,12 @@ write_queue (dev_t d, const byte *b, size_t l, byte f)
 }
 
 errno_t
-write_poll (dev_t d, const byte *ptr, byte flg)
+write_poll (dev_t d, const byte *buf, size_t len, byte flg)
 {
     errno_t     err     = 0;
     cdev_rw_t   *cd;
-    byte        *cur;
+    const byte  *ptr    = buf + len - 1;
+    const byte  *cur;
 
     if ((err = get_cdev(d, &cd, NULL)))
         return err;
