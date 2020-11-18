@@ -9,11 +9,16 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
+/* Flags for cons_setup */
+#define CONS_READ   0x1
+#define CONS_FLASH  0x2
+
 #define panic(_m)   _panic(_F(_m), sizeof(_m))
 #define print(_s)   _print(_F(_s), sizeof(_s))
 
 __BEGIN_DECLS
 
+void    cons_setup  (byte flags);
 void    cons_write  (const char *msg, size_t sz, byte flags);
 void    _panic      (_FLASH char *msg, size_t sz) _DEAD;
 void    _print      (_FLASH char *s, size_t sz);

@@ -147,13 +147,8 @@ process_cmd (byte *cmd)
 static task_st_t
 st_setup (void)
 {
-    open(DEV_tty0, O_READ|O_WRITE);
-    usart_setbaud(DEV_tty0, TTY_SPEED);
-    usart_setmode(DEV_tty0, CS8);
-    delay(2000000);
-    sei();
+    cons_setup(CONS_READ);
 
-    print("Ready.\n");
     ptr     = buf;
 
     return ST_READ;
