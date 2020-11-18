@@ -226,6 +226,15 @@ read_poll (dev_t d, byte *buf, size_t len, byte flg _UNUSED)
     return cur > ptr ? cur - ptr : 0;
 }
 
+/* XXX TODO */
+/* Trim a buffer already passed in.
+ * If we have read past the endpoint already, copy the extra into the
+ * next buffer and continue reading after.
+ *
+ * Errors:
+ * EINVAL   Passed-in endpoint not in a buffer (overflow?)
+ * ENOBUFS  We have data to copy and nowhere to copy it to
+ */
 errno_t
 read_adjust (dev_t d, byte *b, size_t l)
 {

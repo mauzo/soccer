@@ -26,45 +26,53 @@ enum {
 
 #define BUFLEN 26
 
-static byte     buf[BUFLEN + 1];
+static byte     buf[2][BUFLEN + 1];
 static byte     pktlen;
+static byte     which   = 0;
+
+static void
+queue_buf (byte b)
+{
+    xprintf("Queuing buf [%u]\n", b);
+
+    memset(buf[b], 0, BUFLEN+1);
+    read_queue(DEV_tty0, buf[b], BUFLEN, F_WAIT);
+
+    debug_show_cdev_rw(DEV_tty0, _F("After queue"));
+}
 
 static task_st_t
 st_setup (void)
 {
-    open(DEV_tty0, O_READ|O_WRITE);
-    usart_setbaud(DEV_tty0, TTY_SPEED);
-    usart_setmode(DEV_tty0, CS8);
-    delay(2000000);
-    sei();
-
-    print("Starting\n");
+    cons_setup(CONS_READ);
     return ST_RD_QUEUE;
 }
 
 static task_st_t
 st_rd_queue (void)
 {
-    print("Queuing buf\n");
-    memset(buf, 0, BUFLEN+1);
-    read_queue(DEV_tty0, buf, BUFLEN, F_WAIT);
-
+    queue_buf(which);
     return ST_RD_LEN;
 }
 
 static task_st_t
 st_rd_len (void)
 {
-    if (read_poll(DEV_tty0, buf, 1, F_POLL) < 0)
+    byte    *b  = buf[which];
+
+    if (read_poll(DEV_tty0, b, 1, F_POLL) < 0)
         return ST_RD_LEN;
 
-    pktlen  = buf[0] - 'a' + 1;
-    xprintf("Polled for len, got [%c] => [%u]\n", buf[0], pktlen);
+    pktlen  = b[0] - 'a' + 1;
+    xprintf("[%u] Polled for len, got [%c] => [%u]\n", which, b[0], pktlen);
 
+    xprintf("Before adjust b=[%x], pktlen=[%u]\n", (unsigned int)b, pktlen);
     debug_show_cdev_rw(DEV_tty0, _F("Before adjust"));
-    if (read_adjust(DEV_tty0, buf, pktlen) < 0)
+    if (read_adjust(DEV_tty0, b, pktlen) < 0)
         print("OVERFLOW!\n");
     debug_show_cdev_rw(DEV_tty0, _F("After adjust"));
+
+    queue_buf(!which);
 
     return ST_RD_PKT;
 }
@@ -72,14 +80,17 @@ st_rd_len (void)
 static task_st_t
 st_rd_pkt (void)
 {
+    byte    *b  = buf[which];
 
-    if (read_poll(DEV_tty0, buf, pktlen, F_POLL) < 0)
+    if (read_poll(DEV_tty0, b, pktlen, F_POLL) < 0)
         return ST_RD_PKT;
 
     debug_show_cdev_rw(DEV_tty0, _F("After pkt poll"));
-    xprintf("Read packet len [%u]: [%s]\n", pktlen, buf);
+    xprintf("[%u] Read packet len [%u]: [%s]\n", which, pktlen, b);
 
-    return ST_STOP;
+    which   = !which;
+
+    return ST_RD_LEN;
 }
 
 task_st_t
