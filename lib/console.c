@@ -77,6 +77,8 @@ _print (_FLASH char *s, size_t sz)
 void
 _panic (_FLASH char *msg, size_t sz)
 {
+    sei();
+
     cons_write(panic_header, sizeof(panic_header), F_FLASH);
     cons_write(msg, sz, F_FLASH);
     cons_write(panic_footer, sizeof(panic_footer), F_FLASH);
