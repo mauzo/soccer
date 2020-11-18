@@ -9,8 +9,9 @@ task_run_t  ttytest_run;
 task_run_t  gpiotest_run;
 task_run_t  pkttest_run;
 task_run_t  gpioctl_run;
+task_run_t  iictest_run;
 
 task_t Tasks[NTASK] = {
-    [TASK_gpioctl]  = { .tsk_run = gpioctl_run },
+    [TASK_iictest]  = { .tsk_run = iictest_run },
 };
 

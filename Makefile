@@ -1,16 +1,18 @@
 .include "config.mk"
 .include "../avr-mk/avr.mk"
 
-PROG=	gpioctl
+PROG=	iictest
 
-SRCS+=	task/gpioctl.c
+SRCS+=	task/iictest.c
 SRCS+=  sys/devops.c sys/main.c sys/devices.c sys/tasks.c
 SRCS+=  lib/console.c lib/debug.c lib/xprintf.c
 SRCS+=	${SRCS.y}
 
+mk_twi=         y
 mk_gpio=	y
 mk_usart=	y
 
+SRCS.${mk_twi}+=        sys/twi.c
 SRCS.${mk_gpio}+=	sys/gpio.c
 SRCS.${mk_usart}+=	sys/usart.c
 
