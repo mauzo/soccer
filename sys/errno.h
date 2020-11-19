@@ -11,5 +11,6 @@ typedef int errno_t;
 #define ESRCH       (-5)    /* process not found */
 #define EAGAIN      (-6)    /* operation would block */
 #define EBUSY       (-7)    /* device busy */
+#define EIO         (-8)    /* IO error */
 
 #endif

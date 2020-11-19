@@ -3,6 +3,7 @@
 
 #include <sys/dev.h>
 #include <avr/pgmspace.h>
+#include <avr/interrupt.h>
 #include <lib/console.h>
 #include <lib/xprintf.h>
 
@@ -32,6 +33,17 @@ fmt_i (char *buf, int i)
         buf     = fmt_u(buf, i, 10);
     }
     return buf;
+}
+
+void
+_panic_if (errno_t err, _FLASH char *msg)
+{
+    if (err >= 0)
+        return;
+
+    sei();
+    xprintf("%S: error [%d]\n", msg, err);
+    panic("Unexpected error!");
 }
 
 void

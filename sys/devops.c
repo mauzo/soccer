@@ -10,8 +10,8 @@
 #include <sys/task.h>
 #include <sys/uio.h>
 
-// XXX
 #include <lib/console.h>
+#include <lib/xprintf.h>
 
 enum {
     VEC_READING,
@@ -29,6 +29,7 @@ static errno_t
 get_cdev (dev_t d, cdev_rw_t **cd, device_t **devp)
 {
     device_t    *dev;
+    errno_t     err;
 
     if (d > NDEV)
         return ENXIO;
@@ -38,6 +39,15 @@ get_cdev (dev_t d, cdev_rw_t **cd, device_t **devp)
 
     if (!*cd)
         return ENODEV;
+
+    if ((err = (*cd)->cd_errno)) {
+        (*cd)->cd_errno = 0;
+        if (err > 0) {
+            xprintf("dev %u: private error 0x%x\n", d, err);
+            return EIO;
+        }
+        return err;
+    }
 
     if (devp)
         *devp   = dev;

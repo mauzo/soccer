@@ -23,6 +23,7 @@ struct cdev_rw {
     byte    cd_rd_flags : 3;
     byte    cd_wr_tid   : 5;
     byte    cd_wr_flags : 3;
+    errno_t cd_errno;
     iovec_t cd_reading;
     iovec_t cd_rd_next;
     iovec_t cd_writing;
