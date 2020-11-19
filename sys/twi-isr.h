@@ -9,9 +9,18 @@
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
+#include <sys/sleep.h>
 #include <sys/twi.h>
 
 #include <lib/console.h>
+
+#define iprintf(_f, ...) ({ \
+    TWCR &= ~(1<<TWIE); \
+    sei(); \
+    xprintf(_f, __VA_ARGS__); \
+    cli(); \
+    TWCR |= (1<<TWIE); \
+})
 
 _MACRO void
 twi_write_data(device_t *dev, cdev_rw_t *cd);
@@ -21,8 +30,6 @@ twi_isr (device_t *dev)
 {
     twi_cdev_t  *cd     = (twi_cdev_t *)dev->d_cdev;
 
-    panic("twi_isr called!");
-
     switch (TWI_SR(dev)) {
     case TWI_SR_START:
         TWI_DR(dev)     = cd->tw_addr;
@@ -31,11 +38,13 @@ twi_isr (device_t *dev)
 
     case TWI_SR_ADDR_ACK:
     case TWI_SR_DATA_ACK:
+        cons_flash();
         twi_write_data(dev, &cd->tw_buf);
         return;
 
     default:
-        cons_flash();
+        cd->tw_buf.cd_errno = TWI_SR(dev);
+        TWI_CR(dev)     &= ~(1<<TWIE);
         return;
     }
 }
@@ -44,6 +53,7 @@ _MACRO void
 twi_write_data (device_t *dev, cdev_rw_t *cd)
 {
     iovec_t     *iov    = &cd->cd_writing;
+
 
     if (iov->iov_len) {
         if (cd->cd_wr_flags & DEV_WR_FLASH)

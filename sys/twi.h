@@ -23,12 +23,11 @@
 #define TWI_SR_DATA_NACK    0x30
 #define TWI_SR_ARB_LOST     0x38
 
-#define TWI_CR_ENABLE       (1<<TWINT|1<<TWIE|1<<TWEN)
+#define TWI_CR_ENABLE       (1<<TWIE|1<<TWEN)
+#define TWI_CR_OK           (1<<TWINT|TWI_CR_ENABLE)
 #define TWI_CR_SENDACK      (1<<TWEA)
-#define TWI_CR_OK           (1<<TWINT)
 #define TWI_CR_START        (1<<TWSTA)
 #define TWI_CR_STOP         (1<<TWSTO)
-#define TWI_CR_RESTART      (1<<TWSTA|1<<TWSTO)
 
 #define TWI_ADDR(_a, _rw)   ((_a) << 1 | (_rw))
 #define TWI_WRITE           0
@@ -68,12 +67,12 @@ struct twi_sr_reg {
 __BEGIN_DECLS
 
 _MACRO errno_t
-twi_set_addr (dev_t d, byte addr)
+twi_setaddr (dev_t d, byte addr)
 {
     device_t    *dev    = devnum2dev(d);
     twi_cdev_t  *cd     = (twi_cdev_t *)dev->d_cdev;
 
-    cd->tw_addr = addr & 0x1;
+    cd->tw_addr = addr << 1;
     return 0;
 }
 

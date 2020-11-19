@@ -23,23 +23,78 @@ enum {
 
 #define TW_SLAVE    0x13
 
-iovec_t iov = str2iovf("Hello world!");
+iovec_t iov_poll    = str2iovf("[poll]");
+iovec_t iov_irq     = str2iovf("[irq]");
 
 static void
-wait_for_twi (device_t *d)
+show_twi_reg (void)
+{
+    xprintf("twi BR [%u] CR [%x] SR [%x]\n", TWBR, TWCR, TWSR);
+}
+
+static void
+wait_for_twi ()
 {
     print("Waiting for twi...\n");
 
-    while (!(TWI_CR(d) & TW_INT))
+    while (!(TWCR & TW_INT))
         ;
 
-    xprintf("twi CR [%x] SR [%x]\n", TWCR, TWSR);
+    show_twi_reg();
+}
+
+static void
+send_twi_poll (void)
+{
+    device_t    *d;
+
+    d   = devnum2dev(DEV_iic0);
+
+    print("Sending START\n");
+    TWI_CR(d)   = TW_INT|TW_STA|TW_EN;
+    wait_for_twi();
+
+    if (TWI_SR(d) != TWI_SR_START) {
+        print("Start not sent\n");
+        return;
+    }
+
+    xprintf("Sending address [%x]\n", TWI_ADDR(TW_SLAVE, TWI_WRITE));
+    TWI_DR(d)   = TWI_ADDR(TW_SLAVE, TWI_WRITE);
+    TWI_CR(d)   = TW_INT|TW_EN;
+    wait_for_twi();
+
+    if (TWI_SR(d) != TWI_SR_ADDR_ACK) {
+        print("Addr not acked\n");
+        goto stop;
+    }
+
+    print("Sending data\n");
+
+    while (iov_poll.iov_len) {
+        TWI_DR(d)   = *(_FLASH byte *)iov_poll.iov_base;
+        TWI_CR(d)   = TW_INT|TW_EN;
+        wait_for_twi();
+
+        if (TWI_SR(d) != TWI_SR_DATA_ACK) {
+            print("Data not acked\n");
+            goto stop;
+        }
+
+        iov_poll.iov_base++;
+        iov_poll.iov_len--;
+    }
+
+  stop:
+    print("Sending stop\n");
+    TWI_CR(d)   = TW_INT|TW_EN|TW_STO;
+    /* don't wait for stop */
 }
 
 task_st_t
 iictest_run (task_st_t next)
 {
-    device_t    *d;
+    errno_t     err;
 
     if (next == ST_DONE) {
         task_stop();
@@ -48,54 +103,26 @@ iictest_run (task_st_t next)
 
     cons_setup(CONS_FLASH);
 
-    d   = devnum2dev(DEV_iic0);
+    print("Opening device\n");
+    twi_setaddr(DEV_iic0, TW_SLAVE);
+    err = open(DEV_iic0, O_WRITE);
+    panic_if(err, "open iic0");
+    show_twi_reg();
 
-    xprintf("Setting up bit rate (TWBR [%u])\n", TWBR);
-    TWI_SRPS(d) = 0;
-    TWI_BR(d)   = 72;
-    xprintf("SRPS [%x]\n", TWI_SRPS(d));
+    print("Polling write\n");
+    send_twi_poll();
 
-    print("Sending START\n");
-    TWI_CR(d)   = TW_INT|TW_STA|TW_EN;
-    wait_for_twi(d);
+    print("Queueing write\n");
+    err = write_queue(DEV_iic0, iov_irq.iov_base, iov_irq.iov_len, F_FLASH|F_WAIT);
+    panic_if(err, "queue write");
+    show_twi_reg();
 
-    if (TWI_SR(d) != TWI_SR_START) {
-        print("Start not sent\n");
-        goto done;
-    }
-
-    print("Sending address\n");
-    TWI_DR(d)   = TWI_ADDR(TW_SLAVE, TWI_WRITE);
-    TWI_CR(d)   = TW_INT|TW_EN;
-    wait_for_twi(d);
-
-    if (TWI_SR(d) != TWI_SR_ADDR_ACK) {
-        print("Addr not acked\n");
-        goto done;
-    }
-
-    print("Sending data\n");
-
-    while (iov.iov_len) {
-        TWI_DR(d)   = *(_FLASH byte *)iov.iov_base;
-        TWI_CR(d)   = TW_INT|TW_EN;
-        wait_for_twi(d);
-
-        if (TWI_SR(d) != TWI_SR_DATA_ACK) {
-            print("Data not acked\n");
-            goto done;
-        }
-
-        iov.iov_base++;
-        iov.iov_len--;
-    }
-
-    print("Sending stop\n");
-    TWI_CR(d)   = TW_INT|TW_EN|TW_STO;
-    /* don't wait for stop */
+    print("Polling\n");
+    err = write_poll(DEV_iic0, iov_irq.iov_base, iov_irq.iov_len, F_WAIT);
+    panic_if(err, "poll write");
+    show_twi_reg();
 
     print("Done\n");
 
-  done:
     return ST_DONE;
 }

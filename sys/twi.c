@@ -12,6 +12,7 @@
 #include <avr/interrupt.h>
 
 #include <lib/console.h>
+#include <lib/xprintf.h>
 
 static errno_t twi_open   (device_t *c, byte mode);
 static errno_t twi_read   (device_t *d);
@@ -23,9 +24,20 @@ devsw_t twi_devsw = {
     .sw_write   = twi_write,
 };
 
+#define iprintf(_f, ...) ({ \
+    TWCR &= ~(1<<TWIE); \
+    sei(); \
+    xprintf(_f, __VA_ARGS__); \
+    cli(); \
+    TWCR |= (1<<TWIE); \
+})
+
 static errno_t
 twi_open (device_t *d, byte mode)
 {
+    /* XXX want twi_setbaud */
+    TWI_SRPS(d) = 0;
+    TWI_BR(d)   = 72;
     TWI_CR(d)   = TWI_CR_ENABLE;
 
     return 0;
@@ -40,7 +52,11 @@ twi_read (device_t *d)
 static errno_t
 twi_write (device_t *d)
 {
-    TWI_CR(d)   |= TWI_CR_START;
+    twi_cdev_t  *cd     = (twi_cdev_t *)d->d_cdev;
+
+    cd->tw_addr &= 0xFE;
+    iprintf("twi addr [%x]\n", cd->tw_addr);
+    TWI_CR(d)   = TWI_CR_OK | TWI_CR_START;
 
     return 0;
 }
