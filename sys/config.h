@@ -7,6 +7,10 @@
 
 #define SECS_PER_CYCLE  (F_CPU / 320)
 
+#define CONS_TTY_DEV    DEV_tty0
+#define CONS_GPIO_DEV   DEV_gpio0
+#define CONS_GPIO_PIN   5           /* builtin led */
+
 enum {
     DEV_tty0,
     DEV_gpio0,

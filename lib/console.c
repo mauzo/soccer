@@ -18,10 +18,6 @@
 
 #include <lib/console.h>
 
-#define CONS_TTY_DEV    DEV_tty0
-#define CONS_GPIO_DEV   DEV_gpio0
-#define CONS_GPIO_PIN   GPIO_LED_BUILTIN
-
 static _FLASH char panic_header[] = "\r\n\007PANIC!\r\n";
 static _FLASH char panic_footer[] = "\r\nSystem halted.\r\n";
 
@@ -53,8 +49,12 @@ cons_setup (byte flags)
     delay(2000000);
     sei();
 
-    if (flags & CONS_FLASH)
+    if (flags & CONS_FLASH) {
         gpio_pin_output(CONS_GPIO_DEV, CONS_GPIO_PIN);
+        cons_flash();
+        cons_flash();
+        cons_flash();
+    }
 
     print("Ready.\n");
 }
@@ -69,12 +69,6 @@ cons_write (const char *msg, size_t sz, byte flags)
 }
 
 void
-_print (_FLASH char *s, size_t sz)
-{
-    cons_write(s, sz, F_FLASH);
-}
-
-void
 _panic (_FLASH char *msg, size_t sz)
 {
     sei();
@@ -86,3 +80,10 @@ _panic (_FLASH char *msg, size_t sz)
     delay(5000000);
     exit(255);
 }
+
+void
+_print (_FLASH char *s, size_t sz)
+{
+    cons_write(s, sz, F_FLASH);
+}
+
